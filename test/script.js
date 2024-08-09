@@ -68,7 +68,7 @@ const canvas = document.getElementById('gridCanvas');
             const cellCenterX = x * cellSize + cellSize / 2 + offsetX;
             const cellCenterY = y * cellSize + cellSize / 2 + offsetY;
 
-            const tolerance = Math.min(canvas.width, canvas.height) * 0.1 / cellSize * 50;
+            const tolerance = Math.min(canvas.width, canvas.height) * 0.3 / cellSize * 50;
             return Math.abs(cellCenterX - centerX) < tolerance && Math.abs(cellCenterY - centerY) < tolerance;
         }
 
