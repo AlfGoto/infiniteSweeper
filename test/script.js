@@ -105,21 +105,33 @@ function centerCell(row, col) {
     }
 }
 
+function getClientCoordinates(event) {
+    if (event.clientX !== undefined && event.clientY !== undefined) {
+        return { x: event.clientX, y: event.clientY };
+    } else if (event.touches && event.touches[0]) {
+        return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    }
+    return { x: 0, y: 0 }; // Valeurs par défaut en cas de problème
+}
+
 function startDragging(event) {
-    if (event.pointerType === 'mouse' && event.button === 0) { 
+    if (event.pointerType === 'mouse' && event.button === 0 || event.pointerType === 'touch') {
         isDragging = true;
         startClickTime = Date.now(); // Enregistrez le temps de début du clic
-        startDragX = event.clientX - offsetX; // Ajuster pour éviter le saut
-        startDragY = event.clientY - offsetY; // Ajuster pour éviter le saut
+        const coords = getClientCoordinates(event);
+        startDragX = coords.x - offsetX;
+        startDragY = coords.y - offsetY;
     }
 }
 
-const delay = 100
 function drag(event) {
     if (isDragging) {
-        if (Date.now() - startClickTime > delay) {
-            offsetX = event.clientX - startDragX;
-            offsetY = event.clientY - startDragY;
+        const coords = getClientCoordinates(event);
+
+        // Si le clic dure plus de 200 ms, déplacer la grille
+        if (Date.now() - startClickTime > 200) {
+            offsetX = coords.x - startDragX;
+            offsetY = coords.y - startDragY;
             drawGrid();
         }
     }
@@ -127,7 +139,7 @@ function drag(event) {
 
 function stopDragging(event) {
     if (isDragging) {
-        if (Date.now() - startClickTime <= delay) {
+        if (Date.now() - startClickTime <= 200) {
             // Si le clic est court, gérer le clic comme un clic normal
             handleClick(event);
         }
@@ -138,8 +150,9 @@ function stopDragging(event) {
 function handleClick(event) {
     event.preventDefault();
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const coords = getClientCoordinates(event);
+    const x = coords.x - rect.left;
+    const y = coords.y - rect.top;
 
     const col = Math.floor((x - offsetX) / cellSize);
     const row = Math.floor((y - offsetY) / cellSize);
@@ -152,7 +165,7 @@ function handleClick(event) {
     }
 
     // Appliquer la couleur en fonction du bouton de la souris
-    if (event.button === 0) { // Clic gauche
+    if (event.button === 0 || event.pointerType === 'touch') { // Clic gauche ou touché
         console.log(`Coloring cell (${row}, ${col}) with current color`);
         colorCell(row, col, 'lightblue'); // 'lightblue' is not used anymore
     } else if (event.button === 2) { // Clic droit
@@ -161,10 +174,19 @@ function handleClick(event) {
     }
 }
 
+// Événements de souris et tactiles
 canvas.addEventListener('pointerdown', startDragging);
 canvas.addEventListener('pointermove', drag);
 canvas.addEventListener('pointerup', stopDragging);
-canvas.addEventListener('contextmenu', event => event.preventDefault()); // Empêche le menu contextuel du clic droit
+canvas.addEventListener('pointercancel', stopDragging); // En cas d'annulation de touche
+
+canvas.addEventListener('touchstart', startDragging);
+canvas.addEventListener('touchmove', drag);
+canvas.addEventListener('touchend', stopDragging);
+canvas.addEventListener('touchcancel', stopDragging);
+
+// Empêche le menu contextuel du clic droit
+canvas.addEventListener('contextmenu', event => event.preventDefault()); 
 
 window.addEventListener('resize', resizeCanvas);
 
