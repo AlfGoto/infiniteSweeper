@@ -8,11 +8,11 @@ export function createGrid() {
             arr[row][col] = { data: Math.random() * 100 < 27 ? 'bomb' : 0, checked: false }
         }
     }
-    arr.forEach((r, row) => {
-        r.forEach((e, col) => {
-            if (e.data === 'bomb') { for (let r = row - 1; r <= row + 1; r++) { if (arr[r]) { for (let c = col - 1; c <= col + 1; c++) { addData(arr, r, c) } } } }
-        })
-    })
+    for (let row = -100; row <= 100; row++) {
+        for (let col = -100; col <= 100; col++) {
+            if (arr[row][col].data === 'bomb') { for (let r = row - 1; r <= row + 1; r++) { if (arr[r]) { for (let c = col - 1; c <= col + 1; c++) { addData(arr, r, c) } } } }
+        }
+    }
     console.log('time to build the grid:', Date.now() - start, 'ms')
 
     return arr

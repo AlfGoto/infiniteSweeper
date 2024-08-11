@@ -5,13 +5,8 @@ const ctx = canvas.getContext('2d');
 
 
 socket.on('clickResponse', function (data) {
-    // console.log('Server response: ' + JSON.stringify(data))
-    console.log('Server response: ', data)
     if (cellFlags.has(`${data.row},${data.col}`)) cellFlags.delete(`${data.row},${data.col}`)
 
-
-    // console.log(data.data)
-    // return
     if (data.data === 0) {
         colorCell(data.row, data.col);
         for (let r = data.row - 1; r <= data.row + 1; r++) { for (let c = data.col - 1; c <= data.col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
@@ -34,7 +29,7 @@ socket.on('clickResponse', function (data) {
 
 
 
-const cellSize = 40;
+const cellSize = 35;
 let offsetX = 0;
 let offsetY = 0;
 let targetOffsetX = 0;
@@ -235,9 +230,8 @@ function handleClick(event) {
     const col = Math.floor((x - offsetX) / cellSize);
     const row = Math.floor((y - offsetY) / cellSize);
 
-    if (!isNearCenter(col, row)) {
-        centerCell(row, col);
-    }
+    if (!isNearCenter(col, row)) centerCell(row, col);
+    
     if (event.button === 0 || event.pointerType === 'touch') {
         if(cellFlags.has(`${row},${col}`))return
         socket.emit('click', { row: row, col: col });

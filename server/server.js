@@ -23,6 +23,7 @@ io.on('connection', (socket) => {
     socket.firstClick = true
 
     socket.on('click', (data) => {
+        // console.log('Click reçu:', data, socket.grid[data.row][data.col]);
         if(socket.firstClick && socket.grid[data.row][data.col].data !== 0){
             while(socket.firstClick){
                 socket.grid = createGrid()
@@ -30,7 +31,6 @@ io.on('connection', (socket) => {
             }
         }
         if(socket.grid[data.row][data.col].checked) return
-        // console.log('Click reçu:', data, socket.grid[data.row][data.col]);
         socket.grid[data.row][data.col].checked = true
         io.emit('clickResponse', {...data, data: socket.grid[data.row][data.col].data});
     });
