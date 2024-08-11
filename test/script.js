@@ -114,7 +114,7 @@ function isNearCenter(x, y) {
     const cellCenterX = x * cellSize + cellSize / 2 + offsetX;
     const cellCenterY = y * cellSize + cellSize / 2 + offsetY;
 
-    const tolerance = Math.min(canvas.width, canvas.height) * 0.3 / cellSize * 50;
+    const tolerance = Math.min(canvas.width, canvas.height) * 0.4 / cellSize * 50;
     return Math.abs(cellCenterX - centerX) < tolerance && Math.abs(cellCenterY - centerY) < tolerance;
 }
 
@@ -133,13 +133,13 @@ function getClientCoordinates(event) {
     } else if (event.touches && event.touches[0]) {
         return { x: event.touches[0].clientX, y: event.touches[0].clientY };
     }
-    return { x: 0, y: 0 }; // Valeurs par défaut en cas de problème
+    return { x: 0, y: 0 }; 
 }
 
 function startDragging(event) {
     if (event.pointerType === 'mouse' && event.button === 0 || event.pointerType === 'touch') {
         isDragging = true;
-        startClickTime = Date.now(); // Enregistrez le temps de début du clic
+        startClickTime = Date.now(); 
         const coords = getClientCoordinates(event);
         startDragX = coords.x - offsetX;
         startDragY = coords.y - offsetY;

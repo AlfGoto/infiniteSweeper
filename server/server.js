@@ -1,16 +1,16 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');  // Import the CORS module
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io'; // Corrected import
+import cors from 'cors'; 
+import { createGrid } from "./gridFunctions.js";
 
 const app = express();
 const server = http.createServer(app);
 
-// Initialize Socket.IO with CORS options
-const io = socketIo(server, {
+const io = new Server(server, {
     cors: {
-        origin: '*', 
-        methods: ['GET', 'POST'],  
+        origin: '*',
+        methods: ['GET', 'POST'],
     }
 });
 
@@ -19,10 +19,11 @@ app.use(express.static('public'));
 
 io.on('connection', (socket) => {
     console.log('Un utilisateur est connecté');
+    socket.grid = createGrid()
 
     socket.on('click', (data) => {
         console.log('Click reçu:', data);
-        io.emit('clickResponse', data);
+        io.emit('clickResponse', {coords: data, square: socket.grid[data.row][data.col]});
     });
 
     socket.on('disconnect', () => {
@@ -34,3 +35,5 @@ io.on('connection', (socket) => {
 server.listen(8888, () => {
     console.log('Serveur démarré sur http://localhost:8888');
 });
+
+
