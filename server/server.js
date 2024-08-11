@@ -1,6 +1,6 @@
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io'; // Corrected import
+import { Server } from 'socket.io';
 import cors from 'cors'; 
 import { createGrid } from "./gridFunctions.js";
 
@@ -40,7 +40,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Start the server on port 8888
 server.listen(8888, () => {
     console.log('Serveur démarré sur http://localhost:8888');
 });

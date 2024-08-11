@@ -7,21 +7,15 @@ const ctx = canvas.getContext('2d');
 socket.on('clickResponse', function (data) {
     // console.log('Server response: ' + JSON.stringify(data))
     console.log('Server response: ', data)
-    
-    
+    if (cellFlags.has(`${data.row},${data.col}`)) cellFlags.delete(`${data.row},${data.col}`)
+
+
     // console.log(data.data)
     // return
     if (data.data === 0) {
         colorCell(data.row, data.col);
-        socket.emit('click', { row: data.row - 1, col: data.col - 1 });
-        socket.emit('click', { row: data.row - 1, col: data.col });
-        socket.emit('click', { row: data.row - 1, col: data.col + 1 });
-        socket.emit('click', { row: data.row, col: data.col - 1 });
-        socket.emit('click', { row: data.row, col: data.col + 1 });
-        socket.emit('click', { row: data.row + 1, col: data.col - 1 });
-        socket.emit('click', { row: data.row + 1, col: data.col });
-        socket.emit('click', { row: data.row + 1, col: data.col + 1 });
-    }else{
+        for (let r = data.row - 1; r <= data.row + 1; r++) { for (let c = data.col - 1; c <= data.col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
+    } else {
         colorCell(data.row, data.col, data.data);
     }
 });
@@ -53,6 +47,15 @@ let isAnimating = false;
 
 const cellColors = new Map();
 const cellNumbers = new Map();
+const cellFlags = new Map();
+
+
+const flagImg = new Image();
+flagImg.src = './img/flag.png';
+flagImg.onload = function () {
+    console.log('Drapeau chargé');
+    drawGrid();
+};
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -79,19 +82,26 @@ function drawGrid() {
             ctx.fillStyle = baseColor;
             ctx.fillRect(x, y, cellSize, cellSize);
 
-            // Draw the color of the cell if it has been modified
+            // Dessiner la couleur de la cellule si elle a été modifiée
             if (cellColors.has(`${row},${col}`)) {
                 const cellColor = cellColors.get(`${row},${col}`);
                 ctx.fillStyle = cellColor;
                 ctx.fillRect(x, y, cellSize, cellSize);
             }
 
+            // Dessiner les nombres
             if (cellNumbers.has(`${row},${col}`)) {
                 ctx.fillStyle = 'black';
-                ctx.font = "20px Arial";
+                ctx.font = "25px Arial";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(cellNumbers.get(`${row},${col}`), x + cellSize / 2, y + cellSize / 2);
+            }
+
+            // Dessiner le drapeau si la cellule en contient un
+            if (cellFlags.has(`${row},${col}`)) {
+                // ctx.drawImage(flagImg, x + cellSize / 4, y + cellSize / 4, cellSize / 2, cellSize / 2);
+                ctx.drawImage(flagImg, x, y, cellSize, cellSize);
             }
         }
     }
@@ -112,6 +122,18 @@ function colorCell(row, col, number) {
     }
     if (number !== undefined) {
         cellNumbers.set(key, number);
+    }
+    drawGrid();
+}
+// Fonction pour ajouter un drapeau à une cellule
+function addFlagToCell(row, col) {
+    const key = `${row},${col}`;
+    if(cellColors.get(key))return
+    
+    if(cellFlags.has(key)){
+        cellFlags.delete(key);
+    }else{
+        cellFlags.set(key, flagImg);
     }
     drawGrid();
 }
@@ -174,6 +196,10 @@ function startDragging(event) {
         startDragX = coords.x - offsetX;
         startDragY = coords.y - offsetY;
     }
+
+    if (event.button === 2) {
+        handleRightClick(event);
+    }
 }
 
 function drag(event) {
@@ -212,15 +238,23 @@ function handleClick(event) {
     if (!isNearCenter(col, row)) {
         centerCell(row, col);
     }
-
-    // Appliquer la couleur en fonction du bouton de la souris
     if (event.button === 0 || event.pointerType === 'touch') {
+        if(cellFlags.has(`${row},${col}`))return
         socket.emit('click', { row: row, col: col });
         // colorCell(row, col); 
-    } else if (event.button === 2) { // Clic droit
-        // console.log(`Coloring cell (${row}, ${col}) red`);
-        // colorCell(row, col, 'red');
     }
+}
+function handleRightClick(event) {
+    event.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const coords = getClientCoordinates(event);
+    const x = coords.x - rect.left;
+    const y = coords.y - rect.top;
+
+    const col = Math.floor((x - offsetX) / cellSize);
+    const row = Math.floor((y - offsetY) / cellSize);
+
+    addFlagToCell(row, col)
 }
 
 // Événements de souris et tactiles

@@ -5,12 +5,7 @@ export function createGrid() {
     for (let row = -100; row <= 100; row++) {
         arr[row] = []
         for (let col = -100; col <= 100; col++) {
-            // console.log(col)
-            if (Math.random() * 100 < 25) {
-                arr[row][col] = { data: 'bomb', checked: false }
-            } else {
-                arr[row][col] = { data: 0, checked: false }
-            }
+            arr[row][col] = { data: Math.random() * 100 < 27 ? 'bomb' : 0, checked: false }
         }
     }
     arr.forEach((r, row) => {
@@ -22,5 +17,5 @@ export function createGrid() {
 
     return arr
 }
-function addData(arr, row, col) { if (existNotBoumb(arr, row, col)) arr[row][col].data++ }
-function existNotBoumb(arr, row, col) { return arr[row][col] && arr[row][col].data !== 'bomb' }
+function addData(arr, row, col) { if (checkExistNotBoumb(arr, row, col)) arr[row][col].data++ }
+function checkExistNotBoumb(arr, row, col) { return arr[row][col] && arr[row][col].data !== 'bomb' }
