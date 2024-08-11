@@ -1,7 +1,28 @@
+const socket = io('http://localhost:8888');
 const canvas = document.getElementById('gridCanvas');
 const ctx = canvas.getContext('2d');
 
-const cellSize = 40; // Taille fixe des cellules
+
+
+socket.on('clickResponse', function(data) {
+    console.log('Server response: ' + JSON.stringify(data))
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const cellSize = 40; 
 let offsetX = 0;
 let offsetY = 0;
 let targetOffsetX = 0;
@@ -49,8 +70,9 @@ function drawGrid() {
     }
 }
 
-function colorCell(row, col, newColor) {
+function colorCell(row, col) {
     const key = `${row},${col}`;
+
     let currentColor = cellColors.get(key) || getBaseColor(row, col);
 
     if (currentColor === 'lightgreen') {
@@ -59,7 +81,7 @@ function colorCell(row, col, newColor) {
         cellColors.set(key, 'tan');
     } else if (!cellColors.has(key)) {
         // Apply the new color only if the cell has not been colored yet
-        cellColors.set(key, newColor);
+        cellColors.set(key);
     }
     drawGrid();
 }
@@ -157,7 +179,7 @@ function handleClick(event) {
     const col = Math.floor((x - offsetX) / cellSize);
     const row = Math.floor((y - offsetY) / cellSize);
 
-    console.log(`Clicked at: (${x}, ${y}), Grid cell: (${row}, ${col}), Button: ${event.button}`);
+    // console.log(`Clicked at: (${x}, ${y}), Grid cell: (${row}, ${col}), Button: ${event.button}`);
 
     // Ne recale la grille que si la cellule cliquée n'est pas proche du centre
     if (!isNearCenter(col, row)) {
@@ -165,12 +187,13 @@ function handleClick(event) {
     }
 
     // Appliquer la couleur en fonction du bouton de la souris
-    if (event.button === 0 || event.pointerType === 'touch') { // Clic gauche ou touché
-        console.log(`Coloring cell (${row}, ${col}) with current color`);
-        colorCell(row, col, 'lightblue'); // 'lightblue' is not used anymore
+    if (event.button === 0 || event.pointerType === 'touch') { 
+        const data = { row: row, col: col };
+        socket.emit('click', data);
+        colorCell(row, col); 
     } else if (event.button === 2) { // Clic droit
-        console.log(`Coloring cell (${row}, ${col}) red`);
-        colorCell(row, col, 'red');
+        // console.log(`Coloring cell (${row}, ${col}) red`);
+        // colorCell(row, col, 'red');
     }
 }
 
@@ -178,7 +201,7 @@ function handleClick(event) {
 canvas.addEventListener('pointerdown', startDragging);
 canvas.addEventListener('pointermove', drag);
 canvas.addEventListener('pointerup', stopDragging);
-canvas.addEventListener('pointercancel', stopDragging); // En cas d'annulation de touche
+canvas.addEventListener('pointercancel', stopDragging);
 
 canvas.addEventListener('touchstart', startDragging);
 canvas.addEventListener('touchmove', drag);
