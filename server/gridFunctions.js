@@ -6,34 +6,21 @@ export function createGrid() {
         arr[row] = []
         for (let col = -100; col <= 100; col++) {
             // console.log(col)
-            if (Math.random() * 100 < 6) {
-                arr[row][col] = {data: 'bomb', checked: false}
-            }else{
-                arr[row][col] = {data: 0, checked: false}
+            if (Math.random() * 100 < 25) {
+                arr[row][col] = { data: 'bomb', checked: false }
+            } else {
+                arr[row][col] = { data: 0, checked: false }
             }
         }
     }
-    arr.forEach((r, row)=>{
-        r.forEach((e, col)=>{
-            if(e.data === 'bomb'){
-                if(arr[row-1]){
-                    if(arr[row-1][col-1])arr[row-1][col-1].data++
-                    if(arr[row-1][col])arr[row-1][col].data++
-                    if(arr[row-1][col+1])arr[row-1][col+1].data++
-                }
-                if(arr[row]){
-                    if(arr[row][col-1])arr[row][col-1].data++
-                    if(arr[row][col+1])arr[row][col+1].data++
-                }
-                if(arr[row+1]){
-                    if(arr[row+1][col-1])arr[row+1][col-1].data++
-                    if(arr[row+1][col])arr[row+1][col].data++
-                    if(arr[row+1][col+1])arr[row+1][col+1].data++
-                }
-            }
+    arr.forEach((r, row) => {
+        r.forEach((e, col) => {
+            if (e.data === 'bomb') { for (let r = row - 1; r <= row + 1; r++) { if (arr[r]) { for (let c = col - 1; c <= col + 1; c++) { addData(arr, r, c) } } } }
         })
     })
     console.log('time to build the grid:', Date.now() - start, 'ms')
 
     return arr
 }
+function addData(arr, row, col) { if (existNotBoumb(arr, row, col)) arr[row][col].data++ }
+function existNotBoumb(arr, row, col) { return arr[row][col] && arr[row][col].data !== 'bomb' }

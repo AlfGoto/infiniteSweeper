@@ -20,10 +20,19 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
     console.log('Un utilisateur est connecté');
     socket.grid = createGrid()
+    socket.firstClick = true
 
     socket.on('click', (data) => {
-        console.log('Click reçu:', data);
-        io.emit('clickResponse', {coords: data, square: socket.grid[data.row][data.col]});
+        if(socket.firstClick && socket.grid[data.row][data.col].data !== 0){
+            while(socket.firstClick){
+                socket.grid = createGrid()
+                if(socket.grid[data.row][data.col].data === 0)socket.firstClick = false
+            }
+        }
+        if(socket.grid[data.row][data.col].checked) return
+        // console.log('Click reçu:', data, socket.grid[data.row][data.col]);
+        socket.grid[data.row][data.col].checked = true
+        io.emit('clickResponse', {...data, data: socket.grid[data.row][data.col].data});
     });
 
     socket.on('disconnect', () => {

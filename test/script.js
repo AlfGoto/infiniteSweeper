@@ -4,8 +4,26 @@ const ctx = canvas.getContext('2d');
 
 
 
-socket.on('clickResponse', function(data) {
-    console.log('Server response: ' + JSON.stringify(data))
+socket.on('clickResponse', function (data) {
+    // console.log('Server response: ' + JSON.stringify(data))
+    console.log('Server response: ', data)
+    
+    
+    // console.log(data.data)
+    // return
+    if (data.data === 0) {
+        colorCell(data.row, data.col);
+        socket.emit('click', { row: data.row - 1, col: data.col - 1 });
+        socket.emit('click', { row: data.row - 1, col: data.col });
+        socket.emit('click', { row: data.row - 1, col: data.col + 1 });
+        socket.emit('click', { row: data.row, col: data.col - 1 });
+        socket.emit('click', { row: data.row, col: data.col + 1 });
+        socket.emit('click', { row: data.row + 1, col: data.col - 1 });
+        socket.emit('click', { row: data.row + 1, col: data.col });
+        socket.emit('click', { row: data.row + 1, col: data.col + 1 });
+    }else{
+        colorCell(data.row, data.col, data.data);
+    }
 });
 
 
@@ -22,7 +40,7 @@ socket.on('clickResponse', function(data) {
 
 
 
-const cellSize = 40; 
+const cellSize = 40;
 let offsetX = 0;
 let offsetY = 0;
 let targetOffsetX = 0;
@@ -34,6 +52,7 @@ let startClickTime;
 let isAnimating = false;
 
 const cellColors = new Map();
+const cellNumbers = new Map();
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -66,11 +85,19 @@ function drawGrid() {
                 ctx.fillStyle = cellColor;
                 ctx.fillRect(x, y, cellSize, cellSize);
             }
+
+            if (cellNumbers.has(`${row},${col}`)) {
+                ctx.fillStyle = 'black';
+                ctx.font = "20px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(cellNumbers.get(`${row},${col}`), x + cellSize / 2, y + cellSize / 2);
+            }
         }
     }
 }
 
-function colorCell(row, col) {
+function colorCell(row, col, number) {
     const key = `${row},${col}`;
 
     let currentColor = cellColors.get(key) || getBaseColor(row, col);
@@ -82,6 +109,9 @@ function colorCell(row, col) {
     } else if (!cellColors.has(key)) {
         // Apply the new color only if the cell has not been colored yet
         cellColors.set(key);
+    }
+    if (number !== undefined) {
+        cellNumbers.set(key, number);
     }
     drawGrid();
 }
@@ -133,13 +163,13 @@ function getClientCoordinates(event) {
     } else if (event.touches && event.touches[0]) {
         return { x: event.touches[0].clientX, y: event.touches[0].clientY };
     }
-    return { x: 0, y: 0 }; 
+    return { x: 0, y: 0 };
 }
 
 function startDragging(event) {
     if (event.pointerType === 'mouse' && event.button === 0 || event.pointerType === 'touch') {
         isDragging = true;
-        startClickTime = Date.now(); 
+        startClickTime = Date.now();
         const coords = getClientCoordinates(event);
         startDragX = coords.x - offsetX;
         startDragY = coords.y - offsetY;
@@ -179,18 +209,14 @@ function handleClick(event) {
     const col = Math.floor((x - offsetX) / cellSize);
     const row = Math.floor((y - offsetY) / cellSize);
 
-    // console.log(`Clicked at: (${x}, ${y}), Grid cell: (${row}, ${col}), Button: ${event.button}`);
-
-    // Ne recale la grille que si la cellule cliquée n'est pas proche du centre
     if (!isNearCenter(col, row)) {
         centerCell(row, col);
     }
 
     // Appliquer la couleur en fonction du bouton de la souris
-    if (event.button === 0 || event.pointerType === 'touch') { 
-        const data = { row: row, col: col };
-        socket.emit('click', data);
-        colorCell(row, col); 
+    if (event.button === 0 || event.pointerType === 'touch') {
+        socket.emit('click', { row: row, col: col });
+        // colorCell(row, col); 
     } else if (event.button === 2) { // Clic droit
         // console.log(`Coloring cell (${row}, ${col}) red`);
         // colorCell(row, col, 'red');
@@ -209,7 +235,7 @@ canvas.addEventListener('touchend', stopDragging);
 canvas.addEventListener('touchcancel', stopDragging);
 
 // Empêche le menu contextuel du clic droit
-canvas.addEventListener('contextmenu', event => event.preventDefault()); 
+canvas.addEventListener('contextmenu', event => event.preventDefault());
 
 window.addEventListener('resize', resizeCanvas);
 
