@@ -23,16 +23,18 @@ io.on('connection', (socket) => {
     socket.firstClick = true
 
     socket.on('click', (data) => {
-        // console.log('Click reçu:', data, socket.grid[data.row][data.col]);
-        if(socket.firstClick && socket.grid[data.row][data.col].data !== 0){
+        let row = data.row
+        let col = data.col
+        // console.log('Click reçu:', data, socket.grid[row][col]);
+        if(socket.firstClick && socket.grid[row][col].data !== 0){
             while(socket.firstClick){
                 socket.grid = createGrid()
-                if(socket.grid[data.row][data.col].data === 0)socket.firstClick = false
+                if(socket.grid[row][col].data === 0)socket.firstClick = false
             }
         }
-        if(socket.grid[data.row][data.col].checked) return
-        socket.grid[data.row][data.col].checked = true
-        io.emit('clickResponse', {...data, data: socket.grid[data.row][data.col].data});
+        if(socket.grid[row][col].checked) return
+        socket.grid[row][col].checked = true
+        io.emit('clickResponse', {...data, data: socket.grid[row][col].data});
     });
 
     socket.on('disconnect', () => {

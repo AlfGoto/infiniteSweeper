@@ -5,7 +5,7 @@ export function createGrid() {
     for (let row = -100; row <= 100; row++) {
         arr[row] = []
         for (let col = -100; col <= 100; col++) {
-            arr[row][col] = { data: Math.random() * 100 < 27 ? 'bomb' : 0, checked: false }
+            arr[row][col] = { data: Math.random() * 100 < 25 ? 'bomb' : 0, checked: false }
         }
     }
     for (let row = -100; row <= 100; row++) {

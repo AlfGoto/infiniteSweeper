@@ -5,13 +5,15 @@ const ctx = canvas.getContext('2d');
 
 
 socket.on('clickResponse', function (data) {
-    if (cellFlags.has(`${data.row},${data.col}`)) cellFlags.delete(`${data.row},${data.col}`)
+    let row = data.row
+    let col = data.col
+    if (cellFlags.has(`${row},${col}`)) cellFlags.delete(`${row},${col}`)
 
     if (data.data === 0) {
-        colorCell(data.row, data.col);
-        for (let r = data.row - 1; r <= data.row + 1; r++) { for (let c = data.col - 1; c <= data.col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
+        colorCell(row, col);
+        for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
     } else {
-        colorCell(data.row, data.col, data.data);
+        colorCell(row, col, data.data);
     }
 });
 
@@ -77,14 +79,12 @@ function drawGrid() {
             ctx.fillStyle = baseColor;
             ctx.fillRect(x, y, cellSize, cellSize);
 
-            // Dessiner la couleur de la cellule si elle a été modifiée
             if (cellColors.has(`${row},${col}`)) {
                 const cellColor = cellColors.get(`${row},${col}`);
                 ctx.fillStyle = cellColor;
                 ctx.fillRect(x, y, cellSize, cellSize);
             }
 
-            // Dessiner les nombres
             if (cellNumbers.has(`${row},${col}`)) {
                 ctx.fillStyle = 'black';
                 ctx.font = "25px Arial";
@@ -93,9 +93,7 @@ function drawGrid() {
                 ctx.fillText(cellNumbers.get(`${row},${col}`), x + cellSize / 2, y + cellSize / 2);
             }
 
-            // Dessiner le drapeau si la cellule en contient un
             if (cellFlags.has(`${row},${col}`)) {
-                // ctx.drawImage(flagImg, x + cellSize / 4, y + cellSize / 4, cellSize / 2, cellSize / 2);
                 ctx.drawImage(flagImg, x, y, cellSize, cellSize);
             }
         }
@@ -123,11 +121,11 @@ function colorCell(row, col, number) {
 // Fonction pour ajouter un drapeau à une cellule
 function addFlagToCell(row, col) {
     const key = `${row},${col}`;
-    if(cellColors.get(key))return
-    
-    if(cellFlags.has(key)){
+    if (cellColors.get(key)) return
+
+    if (cellFlags.has(key)) {
         cellFlags.delete(key);
-    }else{
+    } else {
         cellFlags.set(key, flagImg);
     }
     drawGrid();
@@ -161,7 +159,7 @@ function isNearCenter(x, y) {
     const cellCenterX = x * cellSize + cellSize / 2 + offsetX;
     const cellCenterY = y * cellSize + cellSize / 2 + offsetY;
 
-    const tolerance = Math.min(canvas.width, canvas.height) * 0.4 / cellSize * 50;
+    const tolerance = Math.min(canvas.width, canvas.height) * 0.3 / cellSize * 50;
     return Math.abs(cellCenterX - centerX) < tolerance && Math.abs(cellCenterY - centerY) < tolerance;
 }
 
@@ -183,8 +181,17 @@ function getClientCoordinates(event) {
     return { x: 0, y: 0 };
 }
 
+let rightClick = false
+let leftClick = false
 function startDragging(event) {
-    if (event.pointerType === 'mouse' && event.button === 0 || event.pointerType === 'touch') {
+    // console.log(`DOWN: button=${event.button}`);
+    if (event.button === 0) leftClick = true
+    if (event.button === 2) rightClick = true
+    if (leftClick && rightClick) {
+        handleLeftRightClick(event)
+        return
+    }
+    if (event.button === 0 || event.pointerType === 'touch') {
         isDragging = true;
         startClickTime = Date.now();
         const coords = getClientCoordinates(event);
@@ -192,8 +199,17 @@ function startDragging(event) {
         startDragY = coords.y - offsetY;
     }
 
-    if (event.button === 2) {
-        handleRightClick(event);
+    if (event.button === 2 && !leftClick) handleRightClick(event);
+}
+function stopDragging(event) {
+    setTimeout(() => {
+        if (event.button === 0) leftClick = false
+        if (event.button === 2) rightClick = false
+    }, 10)
+
+    if (isDragging) {
+        if (Date.now() - startClickTime <= 200) { handleClick(event); }
+        isDragging = false;
     }
 }
 
@@ -210,15 +226,6 @@ function drag(event) {
     }
 }
 
-function stopDragging(event) {
-    if (isDragging) {
-        if (Date.now() - startClickTime <= 200) {
-            // Si le clic est court, gérer le clic comme un clic normal
-            handleClick(event);
-        }
-        isDragging = false;
-    }
-}
 
 function handleClick(event) {
     event.preventDefault();
@@ -231,9 +238,9 @@ function handleClick(event) {
     const row = Math.floor((y - offsetY) / cellSize);
 
     if (!isNearCenter(col, row)) centerCell(row, col);
-    
+
     if (event.button === 0 || event.pointerType === 'touch') {
-        if(cellFlags.has(`${row},${col}`))return
+        if (cellFlags.has(`${row},${col}`)) return
         socket.emit('click', { row: row, col: col });
         // colorCell(row, col); 
     }
@@ -250,12 +257,43 @@ function handleRightClick(event) {
 
     addFlagToCell(row, col)
 }
+function handleLeftRightClick(event) {
+    event.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const coords = getClientCoordinates(event);
+    const x = coords.x - rect.left;
+    const y = coords.y - rect.top;
+
+    const col = Math.floor((x - offsetX) / cellSize);
+    const row = Math.floor((y - offsetY) / cellSize);
+    const key = `${row},${col}`;
+
+    if (!cellColors.get(key) || !cellNumbers.get(key)) return
+
+    // console.log(cellNumbers.get(key))
+    let totalFlags = 0
+    for (let r = row - 1; r <= row + 1; r++) {
+        for (let c = col - 1; c <= col + 1; c++) {
+            if (cellFlags.get(`${r},${c}`)) totalFlags++
+            if (totalFlags === cellNumbers.get(`${row},${col}`)) {
+                for (let ro = row - 1; ro <= row + 1; ro++) {
+                    for (let co = col - 1; co <= col + 1; co++) {
+    
+                        if(!cellColors.get(`${ro},${co}`) && !cellFlags.get(`${ro},${co}`)){
+                            socket.emit('click', { row: ro, col: co });
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 // Événements de souris et tactiles
-canvas.addEventListener('pointerdown', startDragging);
-canvas.addEventListener('pointermove', drag);
-canvas.addEventListener('pointerup', stopDragging);
-canvas.addEventListener('pointercancel', stopDragging);
+canvas.addEventListener('mousedown', startDragging);
+canvas.addEventListener('mousemove', drag);
+canvas.addEventListener('mouseup', stopDragging);
+canvas.addEventListener('mousecancel', stopDragging);
 
 canvas.addEventListener('touchstart', startDragging);
 canvas.addEventListener('touchmove', drag);
