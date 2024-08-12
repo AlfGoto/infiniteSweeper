@@ -1,300 +1,275 @@
-const socket = io('http://localhost:8888');
-const canvas = document.getElementById('gridCanvas');
-const ctx = canvas.getContext('2d');
+class basicGames {
+    constructor() {
+        this.socket = io('http://localhost:8888');
+        this.canvas = document.getElementById('gridCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.cellSize = 35;
+        this.flagImg = new Image();
+        this.flagImg.src = './img/flag.png';
+        this.flagImg.onload = ()=>{ this.drawGrid() }
 
-
-
-socket.on('clickResponse', function (data) {
-    let row = data.row
-    let col = data.col
-    if (cellFlags.has(`${row},${col}`)) cellFlags.delete(`${row},${col}`)
-
-    if (data.data === 0) {
-        colorCell(row, col);
-        for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
-    } else if(data.data === 'bomb'){
-        alert('PERDU')
-        gameOver = true
-    } else {
-        colorCell(row, col, data.data);
+        this.events()
+        this.socketResponse()
+        this.start()
     }
-});
+    events() {
+        // Événements de souris et tactiles
+        this.canvas.addEventListener('mousedown', e=>{this.startDragging(e)});
+        this.canvas.addEventListener('mousemove', e=>{this.drag(e)});
+        this.canvas.addEventListener('mouseup', e=>{this.stopDragging(e)});
+        this.canvas.addEventListener('mousecancel', e=>{this.stopDragging(e)});
 
+        this.canvas.addEventListener('touchstart', e=>{this.startDragging(e)});
+        this.canvas.addEventListener('touchmove', e=>{this.drag(e)});
+        this.canvas.addEventListener('touchend', e=>{this.stopDragging(e)});
+        this.canvas.addEventListener('touchcancel', e=>{this.stopDragging(e)});
 
+        // Empêche le menu contextuel du clic droit
+        this.canvas.addEventListener('contextmenu', event => event.preventDefault());
 
+        window.addEventListener('resize', e=>{this.resizeCanvas(e)});
 
+        this.resizeCanvas();
+    }
+    socketResponse() {
+        this.socket.on('clickResponse', (data)=>{
+            let row = data.row
+            let col = data.col
+            if (this.cellFlags.has(`${row},${col}`)) this.cellFlags.delete(`${row},${col}`)
 
+            if (data.data === 0) {
+                this.colorCell(row, col);
+                for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { this.socket.emit('click', { row: r, col: c }); } }
+            } else if (data.data === 'bomb') {
+                this.gameOver = true
+                if (confirm('PERDU, wanna restart ?')) {
 
+                }
+            } else this.colorCell(row, col, data.data);
+        });
+    }
+    start() {
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.targetOffsetX = 0;
+        this.targetOffsetY = 0;
+        this.isDragging = false;
+        this.startDragX;
+        this.startDragY;
+        this.startClickTime;
+        this.isAnimating = false;
+        this.gameOver = false
+        this.rightClick = false
+        this.leftClick = false
 
+        this.cellColors = new Map();
+        this.cellNumbers = new Map();
+        this.cellFlags = new Map();
+        this.drawGrid()
+    }
+    resizeCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.drawGrid();
+    }
+    drawGrid() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+        const startX = Math.floor(-this.offsetX / this.cellSize);
+        const startY = Math.floor(-this.offsetY / this.cellSize);
+        const endX = Math.ceil((this.canvas.width - this.offsetX) / this.cellSize);
+        const endY = Math.ceil((this.canvas.height - this.offsetY) / this.cellSize);
 
+        for (let row = startY; row <= endY; row++) {
+            for (let col = startX; col <= endX; col++) {
+                const x = col * this.cellSize + this.offsetX;
+                const y = row * this.cellSize + this.offsetY;
+                const isEvenRow = row % 2 === 0;
+                const isEvenCol = col % 2 === 0;
+                const baseColor = isEvenRow === isEvenCol ? 'lightgreen' : 'limegreen';
 
+                this.ctx.fillStyle = baseColor;
+                this.ctx.fillRect(x, y, this.cellSize, this.cellSize);
 
+                if (this.cellColors.has(`${row},${col}`)) {
+                    // const cellColor = this.cellColors.get(`${row},${col}`);
+                    this.ctx.fillStyle = this.cellColors.get(`${row},${col}`);
+                    this.ctx.fillRect(x, y, this.cellSize, this.cellSize);
+                }
 
+                if (this.cellNumbers.has(`${row},${col}`)) {
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.font = "25px Arial";
+                    this.ctx.textAlign = "center";
+                    this.ctx.textBaseline = "middle";
+                    this.ctx.fillText(this.cellNumbers.get(`${row},${col}`), x + this.cellSize / 2, y + this.cellSize / 2);
+                }
 
-
-
-const cellSize = 35;
-let offsetX = 0;
-let offsetY = 0;
-let targetOffsetX = 0;
-let targetOffsetY = 0;
-let isDragging = false;
-let startDragX;
-let startDragY;
-let startClickTime;
-let isAnimating = false;
-let gameOver = false
-
-const cellColors = new Map();
-const cellNumbers = new Map();
-const cellFlags = new Map();
-
-
-const flagImg = new Image();
-flagImg.src = './img/flag.png';
-flagImg.onload = function () {
-    console.log('Drapeau chargé');
-    drawGrid();
-};
-
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    drawGrid();
-}
-
-function drawGrid() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const startX = Math.floor(-offsetX / cellSize);
-    const startY = Math.floor(-offsetY / cellSize);
-    const endX = Math.ceil((canvas.width - offsetX) / cellSize);
-    const endY = Math.ceil((canvas.height - offsetY) / cellSize);
-
-    for (let row = startY; row <= endY; row++) {
-        for (let col = startX; col <= endX; col++) {
-            const x = col * cellSize + offsetX;
-            const y = row * cellSize + offsetY;
-            const isEvenRow = row % 2 === 0;
-            const isEvenCol = col % 2 === 0;
-            const baseColor = isEvenRow === isEvenCol ? 'lightgreen' : 'limegreen';
-
-            ctx.fillStyle = baseColor;
-            ctx.fillRect(x, y, cellSize, cellSize);
-
-            if (cellColors.has(`${row},${col}`)) {
-                const cellColor = cellColors.get(`${row},${col}`);
-                ctx.fillStyle = cellColor;
-                ctx.fillRect(x, y, cellSize, cellSize);
-            }
-
-            if (cellNumbers.has(`${row},${col}`)) {
-                ctx.fillStyle = 'black';
-                ctx.font = "25px Arial";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(cellNumbers.get(`${row},${col}`), x + cellSize / 2, y + cellSize / 2);
-            }
-
-            if (cellFlags.has(`${row},${col}`)) {
-                ctx.drawImage(flagImg, x, y, cellSize, cellSize);
+                if (this.cellFlags.has(`${row},${col}`)) {
+                    this.ctx.drawImage(this.flagImg, x, y, this.cellSize, this.cellSize);
+                }
             }
         }
     }
-}
+    colorCell(row, col, number) {
+        const key = `${row},${col}`;
 
-function colorCell(row, col, number) {
-    const key = `${row},${col}`;
+        let currentColor = this.cellColors.get(key) || this.getBaseColor(row, col);
 
-    let currentColor = cellColors.get(key) || getBaseColor(row, col);
-
-    if (currentColor === 'lightgreen') {
-        cellColors.set(key, 'wheat');
-    } else if (currentColor === 'limegreen') {
-        cellColors.set(key, 'tan');
-    } else if (!cellColors.has(key)) {
-        // Apply the new color only if the cell has not been colored yet
-        cellColors.set(key);
+        if (currentColor === 'lightgreen') this.cellColors.set(key, 'wheat')
+        else if (currentColor === 'limegreen') this.cellColors.set(key, 'tan');
+        else if (!this.cellColors.has(key)) this.cellColors.set(key);
+        if (number !== undefined) this.cellNumbers.set(key, number);
+        this.drawGrid();
     }
-    if (number !== undefined) {
-        cellNumbers.set(key, number);
+    addFlagToCell(row, col) {
+        const key = `${row},${col}`;
+        if (this.cellColors.get(key)) return
+        if (this.cellFlags.has(key)) this.cellFlags.delete(key);
+        else this.cellFlags.set(key, this.flagImg);
+        this.drawGrid();
     }
-    drawGrid();
-}
-// Fonction pour ajouter un drapeau à une cellule
-function addFlagToCell(row, col) {
-    const key = `${row},${col}`;
-    if (cellColors.get(key)) return
-
-    if (cellFlags.has(key)) {
-        cellFlags.delete(key);
-    } else {
-        cellFlags.set(key, flagImg);
+    getBaseColor(row, col) {
+        const isEvenRow = row % 2 === 0;
+        const isEvenCol = col % 2 === 0;
+        return isEvenRow === isEvenCol ? 'lightgreen' : 'limegreen';
     }
-    drawGrid();
-}
+    animate() {
+        const speed = 0.15;
 
-function getBaseColor(row, col) {
-    const isEvenRow = row % 2 === 0;
-    const isEvenCol = col % 2 === 0;
-    return isEvenRow === isEvenCol ? 'lightgreen' : 'limegreen';
-}
+        this.offsetX += (this.targetOffsetX - this.offsetX) * speed;
+        this.offsetY += (this.targetOffsetY - this.offsetY) * speed;
 
-function animate() {
-    const speed = 0.15;
+        this.drawGrid();
 
-    offsetX += (targetOffsetX - offsetX) * speed;
-    offsetY += (targetOffsetY - offsetY) * speed;
-
-    drawGrid();
-
-    if (Math.abs(targetOffsetX - offsetX) > 0.5 || Math.abs(targetOffsetY - offsetY) > 0.5) {
-        isAnimating = true;
-        requestAnimationFrame(animate);
-    } else {
-        isAnimating = false;
+        if (Math.abs(this.targetOffsetX - this.offsetX) > 0.5 || Math.abs(this.targetOffsetY - this.offsetY) > 0.5) {
+            this.isAnimating = true;
+            requestAnimationFrame(()=>this.animate());
+        } else this.isAnimating = false;
     }
-}
+    isNearCenter(x, y) {
+        const cellCenterX = x * this.cellSize + this.cellSize / 2 + this.offsetX;
+        const cellCenterY = y * this.cellSize + this.cellSize / 2 + this.offsetY;
 
-function isNearCenter(x, y) {
-    const cellCenterX = x * cellSize + cellSize / 2 + offsetX;
-    const cellCenterY = y * cellSize + cellSize / 2 + offsetY;
-
-    const leftBoundary = canvas.width * 0.1;   // 10% from the left
-    const rightBoundary = canvas.width * 0.9;  // 10% from the right
-    const topBoundary = canvas.height * 0.1;   // 10% from the top
-    const bottomBoundary = canvas.height * 0.9; // 10% from the bottom
-
-    // Check if the cell center is outside the 80% central area
-    return !(
-        cellCenterX < leftBoundary || 
-        cellCenterX > rightBoundary || 
-        cellCenterY < topBoundary || 
-        cellCenterY > bottomBoundary
-    );
-}
-
-
-function centerCell(row, col) {
-    targetOffsetX = canvas.width / 2 - (col * cellSize + cellSize / 2);
-    targetOffsetY = canvas.height / 2 - (row * cellSize + cellSize / 2);
-
-    if (!isAnimating) {
-        requestAnimationFrame(animate);
+        const leftBoundary = this.canvas.width * 0.1;   // 10% from the left
+        const rightBoundary = this.canvas.width * 0.9;  // 10% from the right
+        const topBoundary = this.canvas.height * 0.1;   // 10% from the top
+        const bottomBoundary = this.canvas.height * 0.9; // 10% from the bottom
+        // Check if the cell center is outside the 80% central area
+        return !(
+            cellCenterX < leftBoundary ||
+            cellCenterX > rightBoundary ||
+            cellCenterY < topBoundary ||
+            cellCenterY > bottomBoundary
+        );
     }
-}
-
-function getClientCoordinates(event) {
-    if (event.clientX !== undefined && event.clientY !== undefined) {
-        return { x: event.clientX, y: event.clientY };
-    } else if (event.touches && event.touches[0]) {
-        return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    centerCell(row, col) {
+        this.targetOffsetX = this.canvas.width / 2 - (col * this.cellSize + this.cellSize / 2);
+        this.targetOffsetY = this.canvas.height / 2 - (row * this.cellSize + this.cellSize / 2);
+        if (!this.isAnimating) requestAnimationFrame(()=>this.animate());
     }
-    return { x: 0, y: 0 };
-}
-
-let rightClick = false
-let leftClick = false
-function startDragging(event) {
-    if(isAnimating || gameOver)return
-    // console.log(`DOWN: button=${event.button}`);
-    if (event.button === 0) leftClick = true
-    if (event.button === 2) rightClick = true
-    if (leftClick && rightClick) {
-        handleLeftRightClick(event)
-        return
+    getClientCoordinates(event) {
+        if (event.clientX !== undefined && event.clientY !== undefined) return { x: event.clientX, y: event.clientY }
+        else if (event.touches && event.touches[0]) return { x: event.touches[0].clientX, y: event.touches[0].clientY }
+        return { x: 0, y: 0 }
     }
-    if (event.button === 0 || event.pointerType === 'touch') {
-        isDragging = true;
-        startClickTime = Date.now();
-        const coords = getClientCoordinates(event);
-        startDragX = coords.x - offsetX;
-        startDragY = coords.y - offsetY;
+    startDragging(event) {
+        if (this.isAnimating || this.gameOver) return
+        // console.log(`DOWN: button=${event.button}`);
+        if (event.button === 0) this.leftClick = true
+        if (event.button === 2) this.rightClick = true
+        if (this.leftClick && this.rightClick) {
+            this.handleLeftRightClick(event)
+            return
+        }
+        if (event.button === 0 || event.pointerType === 'touch') {
+            this.isDragging = true;
+            this.startClickTime = Date.now();
+            const coords = this.getClientCoordinates(event);
+            this.startDragX = coords.x - this.offsetX;
+            this.startDragY = coords.y - this.offsetY;
+        }
+
+        if (event.button === 2 && !this.leftClick) this.handleRightClick(event);
     }
+    stopDragging(event) {
+        setTimeout(() => {
+            if (event.button === 0) this.leftClick = false
+            if (event.button === 2) this.rightClick = false
+        }, 10)
 
-    if (event.button === 2 && !leftClick) handleRightClick(event);
-}
-function stopDragging(event) {
-    setTimeout(() => {
-        if (event.button === 0) leftClick = false
-        if (event.button === 2) rightClick = false
-    }, 10)
-
-    if (isDragging) {
-        if (Date.now() - startClickTime <= 200) { handleClick(event); }
-        isDragging = false;
-    }
-}
-
-function drag(event) {
-    if (isDragging) {
-        const coords = getClientCoordinates(event);
-
-        // Si le clic dure plus de 200 ms, déplacer la grille
-        if (Date.now() - startClickTime > 200) {
-            offsetX = coords.x - startDragX;
-            offsetY = coords.y - startDragY;
-            drawGrid();
+        if (this.isDragging) {
+            if (Date.now() - this.startClickTime <= 200) { this.handleClick(event); }
+            this.isDragging = false;
         }
     }
-}
+    drag(event) {
+        if (this.isDragging) {
+            const coords = this.getClientCoordinates(event);
 
-
-function handleClick(event) {
-    event.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const coords = getClientCoordinates(event);
-    const x = coords.x - rect.left;
-    const y = coords.y - rect.top;
-
-    const col = Math.floor((x - offsetX) / cellSize);
-    const row = Math.floor((y - offsetY) / cellSize);
-
-    if (!isNearCenter(col, row)) centerCell(row, col);
-
-    if (event.button === 0 || event.pointerType === 'touch') {
-        if (cellFlags.has(`${row},${col}`)) return
-        socket.emit('click', { row: row, col: col });
-        // colorCell(row, col); 
+            // Si le clic dure plus de 200 ms, déplacer la grille
+            if (Date.now() - this.startClickTime > 200) {
+                this.offsetX = coords.x - this.startDragX;
+                this.offsetY = coords.y - this.startDragY;
+                this.drawGrid();
+            }
+        }
     }
-}
-function handleRightClick(event) {
-    event.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const coords = getClientCoordinates(event);
-    const x = coords.x - rect.left;
-    const y = coords.y - rect.top;
+    handleClick(event) {
+        event.preventDefault();
+        const rect = this.canvas.getBoundingClientRect();
+        const coords = this.getClientCoordinates(event);
+        const x = coords.x - rect.left;
+        const y = coords.y - rect.top;
 
-    const col = Math.floor((x - offsetX) / cellSize);
-    const row = Math.floor((y - offsetY) / cellSize);
+        const col = Math.floor((x - this.offsetX) / this.cellSize);
+        const row = Math.floor((y - this.offsetY) / this.cellSize);
 
-    addFlagToCell(row, col)
-}
-function handleLeftRightClick(event) {
-    event.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const coords = getClientCoordinates(event);
-    const x = coords.x - rect.left;
-    const y = coords.y - rect.top;
+        if (!this.isNearCenter(col, row)) this.centerCell(row, col);
 
-    const col = Math.floor((x - offsetX) / cellSize);
-    const row = Math.floor((y - offsetY) / cellSize);
-    const key = `${row},${col}`;
+        if (event.button === 0 || event.pointerType === 'touch') {
+            if (this.cellFlags.has(`${row},${col}`)) return
+            this.socket.emit('click', { row: row, col: col });
+            // colorCell(row, col); 
+        }
+    }
+    handleRightClick(event) {
+        event.preventDefault();
+        const rect = this.canvas.getBoundingClientRect();
+        const coords = this.getClientCoordinates(event);
+        const x = coords.x - rect.left;
+        const y = coords.y - rect.top;
 
-    if (!cellColors.get(key) || !cellNumbers.get(key)) return
+        const col = Math.floor((x - this.offsetX) / this.cellSize);
+        const row = Math.floor((y - this.offsetY) / this.cellSize);
 
-    // console.log(cellNumbers.get(key))
-    let totalFlags = 0
-    for (let r = row - 1; r <= row + 1; r++) {
-        for (let c = col - 1; c <= col + 1; c++) {
-            if (cellFlags.get(`${r},${c}`)) totalFlags++
-            if (totalFlags === cellNumbers.get(`${row},${col}`)) {
-                for (let ro = row - 1; ro <= row + 1; ro++) {
-                    for (let co = col - 1; co <= col + 1; co++) {
-    
-                        if(!cellColors.get(`${ro},${co}`) && !cellFlags.get(`${ro},${co}`)){
-                            socket.emit('click', { row: ro, col: co });
+        this.addFlagToCell(row, col)
+    }
+    handleLeftRightClick(event) {
+        event.preventDefault();
+        const rect = this.canvas.getBoundingClientRect();
+        const coords = this.getClientCoordinates(event);
+        const x = coords.x - rect.left;
+        const y = coords.y - rect.top;
+
+        const col = Math.floor((x - this.offsetX) / this.cellSize);
+        const row = Math.floor((y - this.offsetY) / this.cellSize);
+        const key = `${row},${col}`;
+
+        if (!this.cellColors.get(key) || !this.cellNumbers.get(key)) return
+
+        // console.log(cellNumbers.get(key))
+        let totalFlags = 0
+        for (let r = row - 1; r <= row + 1; r++) {
+            for (let c = col - 1; c <= col + 1; c++) {
+                if (this.cellFlags.get(`${r},${c}`)) totalFlags++
+                if (totalFlags === this.cellNumbers.get(`${row},${col}`)) {
+                    for (let ro = row - 1; ro <= row + 1; ro++) {
+                        for (let co = col - 1; co <= col + 1; co++) {
+
+                            if (!this.cellColors.get(`${ro},${co}`) && !this.cellFlags.get(`${ro},${co}`)) {
+                                this.socket.emit('click', { row: ro, col: co });
+                            }
                         }
                     }
                 }
@@ -302,21 +277,4 @@ function handleLeftRightClick(event) {
         }
     }
 }
-
-// Événements de souris et tactiles
-canvas.addEventListener('mousedown', startDragging);
-canvas.addEventListener('mousemove', drag);
-canvas.addEventListener('mouseup', stopDragging);
-canvas.addEventListener('mousecancel', stopDragging);
-
-canvas.addEventListener('touchstart', startDragging);
-canvas.addEventListener('touchmove', drag);
-canvas.addEventListener('touchend', stopDragging);
-canvas.addEventListener('touchcancel', stopDragging);
-
-// Empêche le menu contextuel du clic droit
-canvas.addEventListener('contextmenu', event => event.preventDefault());
-
-window.addEventListener('resize', resizeCanvas);
-
-resizeCanvas();
+let jeu = new basicGames()
