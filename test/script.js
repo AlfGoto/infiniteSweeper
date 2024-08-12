@@ -12,6 +12,9 @@ socket.on('clickResponse', function (data) {
     if (data.data === 0) {
         colorCell(row, col);
         for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
+    } else if(data.data === 'bomb'){
+        alert('PERDU')
+        gameOver = true
     } else {
         colorCell(row, col, data.data);
     }
@@ -41,6 +44,7 @@ let startDragX;
 let startDragY;
 let startClickTime;
 let isAnimating = false;
+let gameOver = false
 
 const cellColors = new Map();
 const cellNumbers = new Map();
@@ -154,14 +158,23 @@ function animate() {
 }
 
 function isNearCenter(x, y) {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
     const cellCenterX = x * cellSize + cellSize / 2 + offsetX;
     const cellCenterY = y * cellSize + cellSize / 2 + offsetY;
 
-    const tolerance = Math.min(canvas.width, canvas.height) * 0.3 / cellSize * 50;
-    return Math.abs(cellCenterX - centerX) < tolerance && Math.abs(cellCenterY - centerY) < tolerance;
+    const leftBoundary = canvas.width * 0.1;   // 10% from the left
+    const rightBoundary = canvas.width * 0.9;  // 10% from the right
+    const topBoundary = canvas.height * 0.1;   // 10% from the top
+    const bottomBoundary = canvas.height * 0.9; // 10% from the bottom
+
+    // Check if the cell center is outside the 80% central area
+    return !(
+        cellCenterX < leftBoundary || 
+        cellCenterX > rightBoundary || 
+        cellCenterY < topBoundary || 
+        cellCenterY > bottomBoundary
+    );
 }
+
 
 function centerCell(row, col) {
     targetOffsetX = canvas.width / 2 - (col * cellSize + cellSize / 2);
@@ -184,6 +197,7 @@ function getClientCoordinates(event) {
 let rightClick = false
 let leftClick = false
 function startDragging(event) {
+    if(isAnimating || gameOver)return
     // console.log(`DOWN: button=${event.button}`);
     if (event.button === 0) leftClick = true
     if (event.button === 2) rightClick = true
