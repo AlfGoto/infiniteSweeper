@@ -41,7 +41,7 @@ class basicGames {
                 this.colorCell(row, col);
                 for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { this.socket.emit('click', { row: r, col: c }); } }
             } else if (data.data === 'bomb') {
-                this.gameOver = true
+                // this.gameOver = true
                 if (confirm('PERDU, wanna restart ?')) {
 
                 }
