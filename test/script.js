@@ -4,13 +4,21 @@ class basicGames {
         this.canvas = document.getElementById('gridCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.cellSize = 35;
-        this.flagImg = new Image();
-        this.flagImg.src = './img/flag.png';
-        this.flagImg.onload = ()=>{ this.drawGrid() }
 
+        this.imgs()
         this.events()
         this.socketResponse()
         this.start()
+    }
+    imgs(){
+        this.img = {}
+        this.img.flag = new Image();
+        this.img.flag.src = '/client/img/flag.png';
+        this.img.flag.onload = ()=>{ this.drawGrid() }
+
+        this.img.bomb = new Image();
+        this.img.bomb.src = '/client/img/bomb.png';
+        this.img.bomb.onload = ()=>{ this.drawGrid() }
     }
     events() {
         // Événements de souris et tactiles
@@ -41,10 +49,16 @@ class basicGames {
                 this.colorCell(row, col);
                 for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { this.socket.emit('click', { row: r, col: c }); } }
             } else if (data.data === 'bomb') {
-                // this.gameOver = true
-                if (confirm('PERDU, wanna restart ?')) {
+                const key = `${row},${col}`;
+                this.cellBombs.set(key, this.img.bomb);
+                this.drawGrid();
 
-                }
+                // this.gameOver = true
+                setTimeout(()=>{
+                    if (confirm('PERDU, wanna restart ?')) {
+    
+                    }
+                },10)
             } else this.colorCell(row, col, data.data);
         });
     }
@@ -65,6 +79,8 @@ class basicGames {
         this.cellColors = new Map();
         this.cellNumbers = new Map();
         this.cellFlags = new Map();
+        this.cellBombs = new Map();
+
         this.drawGrid()
     }
     resizeCanvas() {
@@ -106,7 +122,11 @@ class basicGames {
                 }
 
                 if (this.cellFlags.has(`${row},${col}`)) {
-                    this.ctx.drawImage(this.flagImg, x, y, this.cellSize, this.cellSize);
+                    this.ctx.drawImage(this.img.flag, x, y, this.cellSize, this.cellSize);
+                }
+
+                if (this.cellBombs.has(`${row},${col}`)) {
+                    this.ctx.drawImage(this.img.bomb, x, y, this.cellSize, this.cellSize);
                 }
             }
         }
@@ -126,7 +146,7 @@ class basicGames {
         const key = `${row},${col}`;
         if (this.cellColors.get(key)) return
         if (this.cellFlags.has(key)) this.cellFlags.delete(key);
-        else this.cellFlags.set(key, this.flagImg);
+        else this.cellFlags.set(key, this.img.flag);
         this.drawGrid();
     }
     getBaseColor(row, col) {
