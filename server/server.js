@@ -19,10 +19,7 @@ app.use(express.static('public'));
 
 io.on('connection', (socket) => {
     console.log('Un utilisateur est connecté');
-    socket.grid = createGrid()
-    socket.firstClick = true
-    socket.nbCases = 0
-    socket.start = 0
+    start(socket) 
 
     socket.on('click', (data) => {
         let row = data.row
@@ -30,20 +27,19 @@ io.on('connection', (socket) => {
         // console.log('Click reçu:', data, socket.grid[row][col]);
         if (!socket.grid[row] || !socket.grid[row][col]) socket.grid = expandGrid(socket.grid, row, col)
         if (socket.grid[row][col].checked) return
-        if(socket.firstClick) socket.start = Date.now()
+        if (socket.firstClick) socket.start = Date.now()
         if (socket.firstClick && socket.grid[row][col].data !== 0) while (socket.firstClick) {
             socket.grid = createGrid()
             if (socket.grid[row][col].data === 0) socket.firstClick = false
         }
         socket.grid[row][col].checked = true
         socket.nbCases++
-        if(socket.grid[row][col].data !== 'bomb')io.emit('clickResponse', { ...data, data: socket.grid[row][col].data })
+        if (socket.grid[row][col].data !== 'bomb') io.emit('clickResponse', { ...data, data: socket.grid[row][col].data })
         else io.emit('clickResponse', { ...data, data: socket.grid[row][col].data, nbCases: socket.nbCases, duration: Date.now() - socket.start })
     });
 
-    socket.on('disconnect', () => {
-        console.log('Un utilisateur est déconnecté');
-    });
+    socket.on('restart', (data) => {start(socket) })
+    socket.on('disconnect', () => { console.log('Un utilisateur est déconnecté'); });
 });
 
 server.listen(8888, () => {
@@ -51,3 +47,9 @@ server.listen(8888, () => {
 });
 
 
+function start(socket) {
+    socket.firstClick = true
+    socket.nbCases = 0
+    socket.start = 0
+    socket.grid = createGrid()
+}

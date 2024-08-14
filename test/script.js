@@ -89,6 +89,8 @@ class basicGames {
     }
     restart(){
         console.log('RESTART')
+        this.socket.emit('restart')
+        this.start()
     }
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
