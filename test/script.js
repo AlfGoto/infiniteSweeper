@@ -10,37 +10,38 @@ class basicGames {
         this.socketResponse()
         this.start()
     }
-    imgs(){
+    imgs() {
         this.img = {}
         this.img.flag = new Image();
         this.img.flag.src = '/client/img/flag.png';
-        this.img.flag.onload = ()=>{ this.drawGrid() }
+        this.img.flag.onload = () => { this.drawGrid() }
 
         this.img.bomb = new Image();
         this.img.bomb.src = '/client/img/bomb.png';
-        this.img.bomb.onload = ()=>{ this.drawGrid() }
+        this.img.bomb.onload = () => { this.drawGrid() }
     }
     events() {
         // Événements de souris et tactiles
-        this.canvas.addEventListener('mousedown', e=>{this.startDragging(e)});
-        this.canvas.addEventListener('mousemove', e=>{this.drag(e)});
-        this.canvas.addEventListener('mouseup', e=>{this.stopDragging(e)});
-        this.canvas.addEventListener('mousecancel', e=>{this.stopDragging(e)});
+        this.canvas.addEventListener('mousedown', e => { this.startDragging(e) });
+        this.canvas.addEventListener('mousemove', e => { this.drag(e) });
+        this.canvas.addEventListener('mouseup', e => { this.stopDragging(e) });
+        this.canvas.addEventListener('mousecancel', e => { this.stopDragging(e) });
 
-        this.canvas.addEventListener('touchstart', e=>{this.startDragging(e)});
-        this.canvas.addEventListener('touchmove', e=>{this.drag(e)});
-        this.canvas.addEventListener('touchend', e=>{this.stopDragging(e)});
-        this.canvas.addEventListener('touchcancel', e=>{this.stopDragging(e)});
+        this.canvas.addEventListener('touchstart', e => { this.startDragging(e) });
+        this.canvas.addEventListener('touchmove', e => { this.drag(e) });
+        this.canvas.addEventListener('touchend', e => { this.stopDragging(e) });
+        this.canvas.addEventListener('touchcancel', e => { this.stopDragging(e) });
 
         // Empêche le menu contextuel du clic droit
         this.canvas.addEventListener('contextmenu', event => event.preventDefault());
 
-        window.addEventListener('resize', e=>{this.resizeCanvas(e)});
+        window.addEventListener('resize', e => { this.resizeCanvas(e) });
 
         this.resizeCanvas();
     }
     socketResponse() {
-        this.socket.on('clickResponse', (data)=>{
+        this.socket.on('clickResponse', (data) => {
+            // console.log(data)
             let row = data.row
             let col = data.col
             if (this.cellFlags.has(`${row},${col}`)) this.cellFlags.delete(`${row},${col}`)
@@ -54,11 +55,14 @@ class basicGames {
                 this.drawGrid();
 
                 // this.gameOver = true
-                setTimeout(()=>{
-                    if (confirm('PERDU, wanna restart ?')) {
-    
+                setTimeout(() => {
+                    if (confirm('LOST, wanna restart ?' 
+                        + '\nTime played: ' + this.formatTime(data.duration) 
+                        + '\nCases opened: ' + data.nbCases 
+                        + '\n' + (data.nbCases / (data.duration / 1000)).toFixed(1) + ' Cases/seconds')) {
+                        this.restart()
                     }
-                },10)
+                }, 10)
             } else this.colorCell(row, col, data.data);
         });
     }
@@ -82,6 +86,9 @@ class basicGames {
         this.cellBombs = new Map();
 
         this.drawGrid()
+    }
+    restart(){
+        console.log('RESTART')
     }
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
@@ -164,7 +171,7 @@ class basicGames {
 
         if (Math.abs(this.targetOffsetX - this.offsetX) > 0.5 || Math.abs(this.targetOffsetY - this.offsetY) > 0.5) {
             this.isAnimating = true;
-            requestAnimationFrame(()=>this.animate());
+            requestAnimationFrame(() => this.animate());
         } else this.isAnimating = false;
     }
     isNearCenter(x, y) {
@@ -186,7 +193,7 @@ class basicGames {
     centerCell(row, col) {
         this.targetOffsetX = this.canvas.width / 2 - (col * this.cellSize + this.cellSize / 2);
         this.targetOffsetY = this.canvas.height / 2 - (row * this.cellSize + this.cellSize / 2);
-        if (!this.isAnimating) requestAnimationFrame(()=>this.animate());
+        if (!this.isAnimating) requestAnimationFrame(() => this.animate());
     }
     getClientCoordinates(event) {
         if (event.clientX !== undefined && event.clientY !== undefined) return { x: event.clientX, y: event.clientY }
@@ -295,6 +302,18 @@ class basicGames {
                 }
             }
         }
+    }
+    formatTime(milli) {
+        let seconds = milli / 1000;
+        let hours = parseInt(seconds / 3600); 
+        seconds = seconds % 3600; 
+        let minutes = parseInt(seconds / 60); 
+        seconds = seconds % 60;
+        // alert(hours + ":" + minutes + ":" + seconds);
+        seconds = seconds.toFixed(3)
+        if(minutes === 0)return seconds + 's'
+        if(hours === 0)return minutes + 'min ' + seconds + 's'
+        return hours + 'h' + minutes + 'min ' + seconds + 's'
     }
 }
 let jeu = new basicGames()
