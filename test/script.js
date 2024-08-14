@@ -21,7 +21,6 @@ class basicGames {
         this.img.bomb.onload = () => { this.drawGrid() }
     }
     events() {
-        // Événements de souris et tactiles
         this.canvas.addEventListener('mousedown', e => { this.startDragging(e) });
         this.canvas.addEventListener('mousemove', e => { this.drag(e) });
         this.canvas.addEventListener('mouseup', e => { this.stopDragging(e) });
@@ -32,12 +31,13 @@ class basicGames {
         this.canvas.addEventListener('touchend', e => { this.stopDragging(e) });
         this.canvas.addEventListener('touchcancel', e => { this.stopDragging(e) });
 
-        // Empêche le menu contextuel du clic droit
         this.canvas.addEventListener('contextmenu', event => event.preventDefault());
 
         window.addEventListener('resize', e => { this.resizeCanvas(e) });
 
         this.resizeCanvas();
+
+        document.addEventListener('keydown', e=>{this.keyDown(e)});
     }
     socketResponse() {
         this.socket.on('clickResponse', (data) => {
@@ -92,6 +92,17 @@ class basicGames {
         this.socket.emit('restart')
         this.start()
     }
+    keyDown(key){
+        if(key.key === 'PageUp')this.zoom(-10)
+        if(key.key === 'PageDown')this.zoom(10)
+        this.drawGrid()
+    }
+    zoom(arg){
+        if(this.cellSize + arg < 15 || this.cellSize + arg > 100) return
+        this.cellSize += arg
+        this.offsetX -= arg * 16
+        this.offsetY -= arg * 16
+    }
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
@@ -124,7 +135,7 @@ class basicGames {
 
                 if (this.cellNumbers.has(`${row},${col}`)) {
                     this.ctx.fillStyle = 'black';
-                    this.ctx.font = "25px Arial";
+                    this.ctx.font = Math.floor(this.cellSize * 0.7) + "px Arial";
                     this.ctx.textAlign = "center";
                     this.ctx.textBaseline = "middle";
                     this.ctx.fillText(this.cellNumbers.get(`${row},${col}`), x + this.cellSize / 2, y + this.cellSize / 2);
