@@ -1,0 +1,1 @@
+export function creAppend(pere, child, content = null) { let c = document.createElement(child); pere.appendChild(c); if(content)c.innerHTML = content; return c }

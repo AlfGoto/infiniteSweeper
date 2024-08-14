@@ -1,0 +1,39 @@
+*{
+    padding: 0;
+    margin: 0;
+    font-family: sans-serif;
+    box-sizing: border-box;
+}
+canvas {
+    display: block;
+    margin: 0 auto;
+}
+body, html {
+    height: 100svh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+
+nav{
+    position: absolute;
+    background-color: aqua;
+    top: 0;
+    display: flex;
+
+    p{
+        user-select: none;
+        font-size: 4svw;
+
+        &:hover{
+            color: gray;
+        }
+    }
+}
+main{
+    background-color: bisque;
+    width: 100svw;
+    height: 100svh;
+}
