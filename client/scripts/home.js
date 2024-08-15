@@ -1,3 +1,6 @@
+import basicGames from './basic.js'
+import { creAppend } from './utils.js'
+
 export default class home {
     constructor() {
         this.main = document.getElementsByTagName('main')[0]
@@ -33,6 +36,26 @@ export default class home {
         })
         // target.classList.add('selected')
         this.main.style.left = decal
+
+        this.gamePage()
+    }
+    gamePage(){
+        this.gameSoloButton = document.getElementById('gameSoloButton')
+        this.gameSoloButton.onclick = ()=>{this.startGameSolo()}
+    }
+    startGameSolo(){
+        this.display(false)
+        this.game = new basicGames()
+    }
+
+    display(arg){
+        if(arg){
+            this.main.style.display = 'flex'
+            this.nav.style.display = 'flex'
+        }else{
+            this.main.style.display = 'none'
+            this.nav.style.display = 'none'
+        }
     }
 }
 

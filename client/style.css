@@ -35,7 +35,7 @@ nav {
         transition: all .5s linear;
 
         &:hover {
-            color: gray;
+            background-color: rgb(110, 214, 110);
         }
 
         --decal: 1svw;
