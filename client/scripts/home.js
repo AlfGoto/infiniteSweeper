@@ -1,22 +1,20 @@
-import { creAppend } from "./utils.js"
-
-
 export default class home{
     constructor(){
-        this.main = document.createElement('main')
-        document.body.appendChild(this.main)
+        this.main = document.getElementsByTagName('main')[0]
         this.createNav()
-        this.page = ''
     }
     createNav(){
-        this.nav = creAppend(document.body, 'nav')
-        let pages = [creAppend(this.nav, 'p', 'Game'), creAppend(this.nav, 'p', 'Classement'), creAppend(this.nav, 'p', 'Skins'), creAppend(this.nav, 'p', 'Profile')]
-        pages.forEach(e=>{e.onclick = ()=>{this.openPage(e.innerHTML)}})
-    }
-    openPage(page){
-        if(this.page === page)return
-        this.page = page
-        console.log(page)
+        this.nav = document.getElementsByTagName('nav')[0]
+
+        this.navClassement = this.nav.children[0]
+        this.navGame = this.nav.children[1]
+        this.navSkins = this.nav.children[2]
+        this.navProfile = this.nav.children[3]
+
+        this.navClassement.onclick = ()=>{this.main.style.left = '0svw'}
+        this.navGame.onclick = ()=>{this.main.style.left = '-100svw'}
+        this.navSkins.onclick = ()=>{this.main.style.left = '-200svw'}
+        this.navProfile.onclick = ()=>{this.main.style.left = '-300svw'}
     }
 }
 

@@ -22,6 +22,7 @@ nav{
     background-color: aqua;
     top: 0;
     display: flex;
+    z-index: 10;
 
     p{
         user-select: none;
@@ -33,7 +34,17 @@ nav{
     }
 }
 main{
+    z-index: 9;
     background-color: bisque;
-    width: 100svw;
+    display: flex;
+    /* width: 100svw; */
     height: 100svh;
+    position: absolute;
+    left: 0svw;
+    transition: left ease-in-out .5s;
+
+    section {
+        height: 100svh;
+        width: 100svw;
+    }
 }
