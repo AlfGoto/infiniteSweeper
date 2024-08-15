@@ -1,14 +1,17 @@
-*{
+* {
     padding: 0;
     margin: 0;
     font-family: sans-serif;
     box-sizing: border-box;
 }
+
 canvas {
     display: block;
     margin: 0 auto;
 }
-body, html {
+
+body,
+html {
     height: 100svh;
     display: flex;
     justify-content: center;
@@ -17,34 +20,79 @@ body, html {
 }
 
 
-nav{
+nav {
     position: absolute;
-    background-color: aqua;
     top: 0;
     display: flex;
     z-index: 10;
+    padding: 1svh;
 
-    p{
+    p {
         user-select: none;
-        font-size: 4svw;
+        font-size: 4svh;
+        padding: 1svw;
+        background-color: rgb(185, 224, 185);
+        transition: all .5s linear;
 
-        &:hover{
+        &:hover {
             color: gray;
+        }
+
+        --decal: 1svw;
+
+        &.selected {
+            clip-path: polygon(0 0, 100% 0, calc(100% - var(--decal)) 100%, var(--decal) 100%);
+            background-color: rgb(126, 233, 126);
+        }
+
+        &.beforeSelected {
+            clip-path: polygon(0 0, calc(100% - var(--decal)) 0, 100% 100%, var(--decal) 100%);
+        }
+
+        &.afterSelected {
+            clip-path: polygon(var(--decal) 0, 100% 0, calc(100% - var(--decal)) 100%, 0 100%);
         }
     }
 }
-main{
+
+main {
+    padding-top: 5svw;
     z-index: 9;
     background-color: bisque;
     display: flex;
-    /* width: 100svw; */
     height: 100svh;
     position: absolute;
-    left: 0svw;
+    left: -200svw;
     transition: left ease-in-out .5s;
 
     section {
         height: 100svh;
         width: 100svw;
+    }
+}
+
+
+@media only screen and (max-width: 800px) {
+    nav{
+        padding: 0;
+        gap: 5px;
+        top:unset;
+        bottom: 0;
+        height: fit-content;
+        position: absolute;
+        p{
+            font-size: 6.5svw;
+            &.selected {
+                clip-path: none;
+            }
+    
+            &.beforeSelected {
+                clip-path: none;
+            }
+    
+            &.afterSelected {
+                clip-path: none;
+            }
+        }
     }
 }
