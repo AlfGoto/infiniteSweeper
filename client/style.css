@@ -37,15 +37,16 @@ nav {
     p {
         user-select: none;
         font-size: 4svh;
-        padding: 1svw;
+        padding: 1svw 1.5svw;
         background-color: var(--lightgreen);
         transition: all .5s linear;
+        margin: 0 -.5svw;
 
         &:hover {
             background-color: var(--green);
         }
 
-        --decal: 1svw;
+        --decal: 1.5svw;
 
         &.selected {
             clip-path: polygon(0 0, 100% 0, calc(100% - var(--decal)) 100%, var(--decal) 100%);
@@ -73,7 +74,7 @@ main {
     transition: left ease-in-out .5s;
 
     section {
-        height: 100svh;
+        height: 90svh;
         width: 100svw;
 
 
