@@ -42,10 +42,16 @@ export default class home {
     gamePage(){
         this.gameSoloButton = document.getElementById('gameSoloButton')
         this.gameSoloButton.onclick = ()=>{this.startGameSolo()}
+        
+        this.gameMultButton = document.getElementById('gameMultButton')
+        this.gameMultButton.onclick = ()=>{this.startGameMult()}
     }
     startGameSolo(){
         this.display(false)
         this.game = new basicGames()
+    }
+    startGameMult(){
+        alert('Multiplayer is not implemented yet, coming soon !')
     }
 
     display(arg){

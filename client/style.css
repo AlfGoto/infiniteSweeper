@@ -1,3 +1,10 @@
+:root{
+    --green: limegreen;
+    --lightgreen: lightgreen;
+    --tan: tan;
+    --lightan: wheat;
+}
+
 * {
     padding: 0;
     margin: 0;
@@ -31,18 +38,18 @@ nav {
         user-select: none;
         font-size: 4svh;
         padding: 1svw;
-        background-color: rgb(185, 224, 185);
+        background-color: var(--lightgreen);
         transition: all .5s linear;
 
         &:hover {
-            background-color: rgb(110, 214, 110);
+            background-color: var(--green);
         }
 
         --decal: 1svw;
 
         &.selected {
             clip-path: polygon(0 0, 100% 0, calc(100% - var(--decal)) 100%, var(--decal) 100%);
-            background-color: rgb(126, 233, 126);
+            background-color: var(--green);
         }
 
         &.beforeSelected {
@@ -68,6 +75,24 @@ main {
     section {
         height: 100svh;
         width: 100svw;
+
+
+        &#gameSection{
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+
+            button{
+                background-color: var(--lightgreen);
+                border: none;
+                padding: 4svh;
+                font-size: 3svh;
+
+                &:hover{
+                    background-color: var(--green);
+                }
+            }
+        }
     }
 }
 
