@@ -2,7 +2,9 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { expandGrid, createGrid } from "./gridFunctions.js";
+import { expandGrid, createGrid } from "./scripts/gridFunctions.js";
+import sql from './scripts/sql.js'
+
 
 const app = express();
 const server = http.createServer(app);
