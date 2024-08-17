@@ -21,7 +21,7 @@ app.use(express.static('public'));
 
 io.on('connection', (socket) => {
     console.log('Un utilisateur est connecté');
-    start(socket) 
+    start(socket)
 
     socket.on('click', (data) => {
         let row = data.row
@@ -39,8 +39,16 @@ io.on('connection', (socket) => {
         if (socket.grid[row][col].data !== 'bomb') io.emit('clickResponse', { ...data, data: socket.grid[row][col].data })
         else io.emit('clickResponse', { ...data, data: socket.grid[row][col].data, nbCases: socket.nbCases, duration: Date.now() - socket.start })
     });
+    socket.on('login', data => {
+        if(data.username.includes('--') || data.password.includes('--'))return
+        sql.user.login(data.username, data.password, socket)
+    })
+    socket.on('register', data => {
+        if(data.username.includes('--') || data.password.includes('--'))return
+        sql.user.register(data.username, data.password, socket)
+    })
 
-    socket.on('restart', (data) => {start(socket) })
+    socket.on('restart', (data) => { start(socket) })
     socket.on('disconnect', () => { console.log('Un utilisateur est déconnecté'); });
 });
 

@@ -1,7 +1,6 @@
 import socket from './socket.js'
 export default class basicGames {
     constructor() {
-        this.socket = socket;
         this.canvas = document.createElement('canvas')
         document.body.appendChild(this.canvas)
         this.ctx = this.canvas.getContext('2d');
@@ -42,7 +41,7 @@ export default class basicGames {
         document.addEventListener('keydown', e=>{this.keyDown(e)});
     }
     socketResponse() {
-        this.socket.on('clickResponse', (data) => {
+        socket.on('clickResponse', (data) => {
             // console.log(data)
             let row = data.row
             let col = data.col
@@ -50,7 +49,7 @@ export default class basicGames {
 
             if (data.data === 0) {
                 this.colorCell(row, col);
-                for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { this.socket.emit('click', { row: r, col: c }); } }
+                for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { socket.emit('click', { row: r, col: c }); } }
             } else if (data.data === 'bomb') {
                 const key = `${row},${col}`;
                 this.cellBombs.set(key, this.img.bomb);
@@ -91,7 +90,7 @@ export default class basicGames {
     }
     restart(){
         console.log('RESTART')
-        this.socket.emit('restart')
+        socket.emit('restart')
         this.start()
     }
     keyDown(key){
@@ -273,7 +272,7 @@ export default class basicGames {
 
         if (event.button === 0 || event.pointerType === 'touch') {
             if (this.cellFlags.has(`${row},${col}`)) return
-            this.socket.emit('click', { row: row, col: col });
+            socket.emit('click', { row: row, col: col });
             // colorCell(row, col); 
         }
     }
@@ -314,7 +313,7 @@ export default class basicGames {
                         for (let co = col - 1; co <= col + 1; co++) {
 
                             if (!this.cellColors.get(`${ro},${co}`) && !this.cellFlags.get(`${ro},${co}`)) {
-                                this.socket.emit('click', { row: ro, col: co });
+                                socket.emit('click', { row: ro, col: co });
                             }
                         }
                     }

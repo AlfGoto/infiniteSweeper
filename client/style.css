@@ -94,10 +94,59 @@ main {
                 }
             }
         }
+
+        &#userSection{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            #logRegisterForm{
+                width: 60svh;
+                max-width: 90svw;
+                flex-direction: column;
+                gap: 10px;
+
+                #logError{
+                    color: red;
+                }
+
+                div{
+                    display: flex;
+                    flex-direction: column;
+
+                    &.buttons{
+                        flex-direction: row;
+                    }
+                }
+            }
+        }
     }
 }
+input{
+    &:not(:placeholder-shown):valid{
+        outline-color: green;
+    }
+    &:not(:placeholder-shown):invalid{
+        outline-color: red;
+    }
 
+    height: 30px;
+    padding: 5px;
+    width: 200px;
+}
+label{
+    font-size: 15px;
+    font-weight: 600;
+}
+button{
+    padding: 5px;
+    border: black solid 1px;
+    background-color: white;
 
+    &:hover{
+        background-color: lightgray;
+    }
+}
 @media only screen and (max-width: 800px) {
     nav{
         padding: 0;

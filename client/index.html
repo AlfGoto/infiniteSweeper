@@ -14,7 +14,27 @@
         <p>Profile</p>
     </nav>
     <main>
-        <section>Profile</section>
+        <section id="userSection">
+            <div id="logRegisterForm">
+                <h2>You should login</h2>
+                <div>
+                    <label for="logName">Username</label>
+                    <input id="logName" type="text" placeholder="your cool name" minlength="5" maxlength="15"/>
+                </div>
+                <div>
+                    <label for="logPassword">Password</label>
+                    <input id="logPassword" type="password"  placeholder="password" minlength="5" maxlength="15"/>
+                </div>
+                <p id="logError"></p>
+                <div class="buttons">
+                    <button id="logButton">Login</button>
+                    <button id="regButton">Register</button>
+                </div>
+            </div>
+            <div id="userDiv">
+
+            </div>
+        </section>
         <section>Skins</section>
         <section id="gameSection">
             <button id="gameSoloButton">Solo</button>
