@@ -35,21 +35,15 @@ class user {
             }
             result = JSON.parse(JSON.stringify(result))
             if (result.length === 0) {
-
-                let request = `INSERT INTO users(username, password) VALUES ('${username}', '${password}')`
-                con.query(request, function (err, result) {
+                con.query(`INSERT INTO users(username, password) VALUES ('${username}', '${password}')`, function (err, result) {
                     if (err) {
                         socket.emit('logError', 'Registration Error, please contact an admin')
                         return
                     }
                     socket.user = { id: result.insertId, username: username }
                     socket.emit('logSuccess', username)
-                    return
                 });
-            } else {
-                socket.emit('logError', 'Username already taken')
-                return
-            }
+            } else socket.emit('logError', 'Username already taken')
         });
     }
 }

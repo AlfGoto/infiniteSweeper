@@ -38,7 +38,7 @@ export default class basicGames {
 
         this.resizeCanvas();
 
-        document.addEventListener('keydown', e=>{this.keyDown(e)});
+        document.addEventListener('keydown', e => { this.keyDown(e) });
     }
     socketResponse() {
         socket.on('clickResponse', (data) => {
@@ -57,9 +57,9 @@ export default class basicGames {
 
                 this.gameOver = true
                 setTimeout(() => {
-                    if (confirm('LOST, wanna restart ?' 
-                        + '\nTime played: ' + this.formatTime(data.duration) 
-                        + '\nCases opened: ' + data.nbCases 
+                    if (confirm('LOST, wanna restart ?'
+                        + '\nTime played: ' + this.formatTime(data.duration)
+                        + '\nCases opened: ' + data.nbCases
                         + '\n' + (data.nbCases / (data.duration / 1000)).toFixed(1) + ' Cases/seconds')) {
                         this.restart()
                     }
@@ -88,18 +88,18 @@ export default class basicGames {
 
         this.drawGrid()
     }
-    restart(){
+    restart() {
         console.log('RESTART')
         socket.emit('restart')
         this.start()
     }
-    keyDown(key){
-        if(key.key === 'PageUp')this.zoom(-10)
-        if(key.key === 'PageDown')this.zoom(10)
+    keyDown(key) {
+        if (key.key === 'PageUp') this.zoom(-10)
+        if (key.key === 'PageDown') this.zoom(10)
         this.drawGrid()
     }
-    zoom(arg){
-        if(this.cellSize + arg < 15 || this.cellSize + arg > 100) return
+    zoom(arg) {
+        if (this.cellSize + arg < 15 || this.cellSize + arg > 100) return
         this.cellSize += arg
         this.offsetX -= arg * 16
         this.offsetY -= arg * 16
@@ -117,6 +117,7 @@ export default class basicGames {
         const endX = Math.ceil((this.canvas.width - this.offsetX) / this.cellSize);
         const endY = Math.ceil((this.canvas.height - this.offsetY) / this.cellSize);
 
+        let flagInAnimation = false
         for (let row = startY; row <= endY; row++) {
             for (let col = startX; col <= endX; col++) {
                 const x = col * this.cellSize + this.offsetX;
@@ -129,9 +130,15 @@ export default class basicGames {
                 this.ctx.fillRect(x, y, this.cellSize, this.cellSize);
 
                 if (this.cellColors.has(`${row},${col}`)) {
-                    // const cellColor = this.cellColors.get(`${row},${col}`);
-                    this.ctx.fillStyle = this.cellColors.get(`${row},${col}`);
-                    this.ctx.fillRect(x, y, this.cellSize, this.cellSize);
+                    let decal = this.cellColors.get(`${row},${col}`).anim
+                    if (decal > 1) {
+                        setTimeout(() => { this.cellColors.set(`${row},${col}`, { color: this.cellColors.get(`${row},${col}`).color, anim: decal - 1 }) }, 20)
+                        flagInAnimation = true
+                    }
+                    decal = decal - 1
+
+                    this.ctx.fillStyle = this.cellColors.get(`${row},${col}`).color;
+                    this.ctx.fillRect(x - decal, y - decal, this.cellSize + decal, this.cellSize + decal);
                 }
 
                 if (this.cellNumbers.has(`${row},${col}`)) {
@@ -143,7 +150,13 @@ export default class basicGames {
                 }
 
                 if (this.cellFlags.has(`${row},${col}`)) {
-                    this.ctx.drawImage(this.img.flag, x, y, this.cellSize, this.cellSize);
+                    let decal = this.cellFlags.get(`${row},${col}`)
+                    if (decal > 1) {
+                        setTimeout(() => { this.cellFlags.set(`${row},${col}`, decal - 1) }, 20)
+                        flagInAnimation = true
+                    }
+                    decal = decal - 1
+                    this.ctx.drawImage(this.img.flag, x, y - decal * 4, this.cellSize, this.cellSize - decal * 4);
                 }
 
                 if (this.cellBombs.has(`${row},${col}`)) {
@@ -151,14 +164,15 @@ export default class basicGames {
                 }
             }
         }
+        if (flagInAnimation) { setTimeout(() => { this.drawGrid() }, 20) }
     }
     colorCell(row, col, number) {
         const key = `${row},${col}`;
 
         let currentColor = this.cellColors.get(key) || this.getBaseColor(row, col);
 
-        if (currentColor === 'lightgreen') this.cellColors.set(key, 'wheat')
-        else if (currentColor === 'limegreen') this.cellColors.set(key, 'tan');
+        if (currentColor === 'lightgreen') this.cellColors.set(key, { color: 'wheat', anim: 5 })
+        else if (currentColor === 'limegreen') this.cellColors.set(key, { color: 'tan', anim: 5 });
         else if (!this.cellColors.has(key)) this.cellColors.set(key);
         if (number !== undefined) this.cellNumbers.set(key, number);
         this.drawGrid();
@@ -167,7 +181,7 @@ export default class basicGames {
         const key = `${row},${col}`;
         if (this.cellColors.get(key)) return
         if (this.cellFlags.has(key)) this.cellFlags.delete(key);
-        else this.cellFlags.set(key, this.img.flag);
+        else this.cellFlags.set(key, 5);
         this.drawGrid();
     }
     getBaseColor(row, col) {
@@ -267,7 +281,7 @@ export default class basicGames {
         const row = Math.floor((y - this.offsetY) / this.cellSize);
 
         if (!this.isNearCenter(col, row)) this.centerCell(row, col);
-        
+
         if (this.gameOver) return
 
         if (event.button === 0 || event.pointerType === 'touch') {
@@ -303,7 +317,6 @@ export default class basicGames {
 
         if (!this.cellColors.get(key) || !this.cellNumbers.get(key)) return
 
-        // console.log(cellNumbers.get(key))
         let totalFlags = 0
         for (let r = row - 1; r <= row + 1; r++) {
             for (let c = col - 1; c <= col + 1; c++) {
@@ -323,14 +336,14 @@ export default class basicGames {
     }
     formatTime(milli) {
         let seconds = milli / 1000;
-        let hours = parseInt(seconds / 3600); 
-        seconds = seconds % 3600; 
-        let minutes = parseInt(seconds / 60); 
+        let hours = parseInt(seconds / 3600);
+        seconds = seconds % 3600;
+        let minutes = parseInt(seconds / 60);
         seconds = seconds % 60;
         // alert(hours + ":" + minutes + ":" + seconds);
         seconds = seconds.toFixed(3)
-        if(minutes === 0)return seconds + 's'
-        if(hours === 0)return minutes + 'min ' + seconds + 's'
+        if (minutes === 0) return seconds + 's'
+        if (hours === 0) return minutes + 'min ' + seconds + 's'
         return hours + 'h' + minutes + 'min ' + seconds + 's'
     }
 }
