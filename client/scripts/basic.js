@@ -8,7 +8,7 @@ export default class basicGames {
         this.ctx = this.canvas.getContext('2d');
         this.cellSize = 35;
         this.menu = new inGameMenu()
-        this.menu.restart = ()=>{this.start()}
+        this.menu.restart = ()=>{this.restart()()}
 
         this.imgs()
         this.events()
