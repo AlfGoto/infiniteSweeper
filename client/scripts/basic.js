@@ -1,10 +1,12 @@
 import socket from './socket.js'
+import inGameMenu from './inGameMenu.js'
 export default class basicGames {
     constructor() {
         this.canvas = document.createElement('canvas')
         document.body.appendChild(this.canvas)
         this.ctx = this.canvas.getContext('2d');
         this.cellSize = 35;
+        this.menu = new inGameMenu()
 
         this.imgs()
         this.events()

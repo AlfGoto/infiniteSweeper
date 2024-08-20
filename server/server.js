@@ -39,14 +39,8 @@ io.on('connection', (socket) => {
         if (socket.grid[row][col].data !== 'bomb') io.emit('clickResponse', { ...data, data: socket.grid[row][col].data })
         else io.emit('clickResponse', { ...data, data: socket.grid[row][col].data, nbCases: socket.nbCases, duration: Date.now() - socket.start })
     });
-    socket.on('login', data => {
-        if(data.username.includes('--') || data.password.includes('--'))return
-        sql.user.login(data.username, data.password, socket)
-    })
-    socket.on('register', data => {
-        if(data.username.includes('--') || data.password.includes('--'))return
-        sql.user.register(data.username, data.password, socket)
-    })
+    socket.on('login', data => { sql.user.login(noInjection(data.username), noInjection(data.password), socket) })
+    socket.on('register', data => { sql.user.register(noInjection(data.username), noInjection(data.password), socket) })
 
     socket.on('restart', (data) => { start(socket) })
     socket.on('disconnect', () => { console.log('Un utilisateur est déconnecté'); });
@@ -62,4 +56,13 @@ function start(socket) {
     socket.nbCases = 0
     socket.start = 0
     socket.grid = createGrid()
+}
+function noInjection(arg) {
+    arg = arg.replace('--', 'b')
+    arg = arg.replace(';', 'b')
+    arg = arg.replace('1=1', 'b')
+    arg = arg.replace('true', 'b')
+    arg = arg.replace('where', 'b')
+    arg = arg.replace('WHERE', 'b')
+    return arg
 }
