@@ -1,6 +1,5 @@
 import basicGames from './basic.js'
 import user from './user.js'
-import { creAppend } from './utils.js'
 import socket from './socket.js'
 
 export default class home {

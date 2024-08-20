@@ -1,4 +1,4 @@
-:root{
+:root {
     --green: limegreen;
     --lightgreen: lightgreen;
     --tan: tan;
@@ -11,12 +11,10 @@
     font-family: sans-serif;
     box-sizing: border-box;
 }
-
 canvas {
     display: block;
     margin: 0 auto;
 }
-
 body,
 html {
     height: 100svh;
@@ -25,8 +23,6 @@ html {
     align-items: center;
     overflow: hidden;
 }
-
-
 nav {
     position: absolute;
     top: 0;
@@ -78,43 +74,43 @@ main {
         width: 100svw;
 
 
-        &#gameSection{
+        &#gameSection {
             display: flex;
             align-items: center;
             justify-content: space-evenly;
 
-            button{
+            button {
                 background-color: var(--lightgreen);
                 border: none;
                 padding: 4svh;
                 font-size: 3svh;
 
-                &:hover{
+                &:hover {
                     background-color: var(--green);
                 }
             }
         }
 
-        &#userSection{
+        &#userSection {
             display: flex;
             justify-content: center;
             align-items: center;
-            
-            #logRegisterForm{
+
+            #logRegisterForm {
                 width: 60svh;
                 max-width: 90svw;
                 flex-direction: column;
                 gap: 10px;
 
-                #logError{
+                #logError {
                     color: red;
                 }
 
-                div{
+                div {
                     display: flex;
                     flex-direction: column;
 
-                    &.buttons{
+                    &.buttons {
                         flex-direction: row;
                     }
                 }
@@ -122,11 +118,11 @@ main {
         }
     }
 }
-input{
-    &:not(:placeholder-shown):valid{
+input {
+    &:not(:placeholder-shown):valid {
         outline-color: green;
     }
-    &:not(:placeholder-shown):invalid{
+    &:not(:placeholder-shown):invalid {
         outline-color: red;
     }
 
@@ -134,20 +130,20 @@ input{
     padding: 5px;
     width: 200px;
 }
-label{
+label {
     font-size: 15px;
     font-weight: 600;
 }
-button{
+button {
     padding: 5px;
     border: black solid 1px;
     background-color: white;
 
-    &:hover{
+    &:hover {
         background-color: lightgray;
     }
 }
-#inGameMenu{
+#inGameMenu {
     position: absolute;
     top: 0;
     right: 0;
@@ -156,25 +152,47 @@ button{
     backdrop-filter: blur(2px);
     /* border: solid 2px black; */
     width: 60px;
+    height: 60px;
     transition: width linear .2s;
     margin: 20px;
     padding: 10px;
     justify-content: end;
     border-radius: 30px;
+    flex-direction: row-reverse;
+    overflow: hidden;
+    gap: 10px;
 
-    #menuCheckbox{
+    img{
+        max-height: 60px;
+        transform: translateY(-10px);
+        width: 60px;
+        cursor: pointer;
+    }
+
+    #inGameMenuCheckbox {
         display: none;
     }
-    label{
+    label {
+        position: relative;
+        right: 0px;
         border-radius: 50%;
         width: 40px;
         height: 40px;
+        min-height: 40px;
+        min-width: 40px;
         border: solid 2px black;
+        cursor: pointer;
     }
 
-    &:has(#menuCheckbox:checked){
+    &:has(#inGameMenuCheckbox:checked) {
         width: 500px;
     }
+
+    /* &>div{
+        display: flex;
+        height: 100%;
+        width:max-content;
+    } */
 }
 
 
@@ -187,23 +205,23 @@ button{
 
 
 @media only screen and (max-width: 800px) {
-    nav{
+    nav {
         padding: 0;
         gap: 5px;
-        top:unset;
+        top: unset;
         bottom: 0;
         height: fit-content;
         position: absolute;
-        p{
+        p {
             font-size: 6.5svw;
             &.selected {
                 clip-path: none;
             }
-    
+
             &.beforeSelected {
                 clip-path: none;
             }
-    
+
             &.afterSelected {
                 clip-path: none;
             }

@@ -1,5 +1,6 @@
 import socket from './socket.js'
 import inGameMenu from './inGameMenu.js'
+
 export default class basicGames {
     constructor() {
         this.canvas = document.createElement('canvas')
@@ -7,6 +8,7 @@ export default class basicGames {
         this.ctx = this.canvas.getContext('2d');
         this.cellSize = 35;
         this.menu = new inGameMenu()
+        this.menu.restart = ()=>{this.start()}
 
         this.imgs()
         this.events()
@@ -58,6 +60,7 @@ export default class basicGames {
                 this.drawGrid();
 
                 this.gameOver = true
+                this.menu.stop()
                 setTimeout(() => {
                     if (confirm('LOST, wanna restart ?'
                         + '\nTime played: ' + this.formatTime(data.duration)
@@ -88,6 +91,7 @@ export default class basicGames {
         this.cellFlags = new Map();
         this.cellBombs = new Map();
 
+        this.menu.start()
         this.drawGrid()
     }
     restart() {

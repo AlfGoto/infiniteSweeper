@@ -1,37 +1,37 @@
-import { creAppend } from "./utils.js"
+import { domAlf, creAppend } from "../node_modules/domalf/index.js"
 
-export default class inGameMenu{
-    constructor(){
-        this.div = creAppend(document.body, 'div')
-        this.div.id = 'inGameMenu'
+export default class inGameMenu {
+    constructor() {
         this.nbCases = 0
         this.time = 0
 
-        this.dom = {
-            check: creAppend(this.div, 'input'),
-            label: creAppend(this.div, 'label'),
-            stats: creAppend(this.div, 'div')
-        }
-        this.dom.timeDiv = creAppend(this.dom.stats, 'div')
-        this.dom.nbCasesDiv = creAppend(this.dom.stats, 'div')
-        this.dom.timeLabel = creAppend(this.dom.timeDiv, 'p')
-        this.dom.timeLabel.classList.add('label')
-        this.dom.nbCasesLabel = creAppend(this.dom.nbCasesDiv, 'p')
-        this.dom.nbCasesLabel.classList.add('label')
-        this.dom.timeDiv = creAppend(this.dom.timeDiv, 'p')
-        this.dom.nbCasesDiv = creAppend(this.dom.nbCasesDiv, 'p')
+        this.div = creAppend(document.body, 'div')
+        this.div.id = "inGameMenu"
 
-        this.dom.check.id = 'menuCheckbox'
-        this.dom.check.setAttribute("type", "checkbox");
-        this.dom.label.setAttribute('for', 'menuCheckbox')
+        this.dom = domAlf(`
+                <input id="inGameMenuCheckbox" type="checkbox" />
+                <label for="inGameMenuCheckbox"></label>
+                <img id="menuRestartButton" src="img/logoRestart.png" alt="restart button">
+                <div><p>Time</p><p id="menuTimer">0</p></div>
+                <div><p>Cases</p><p id="menuCases">0</p></div>
+                <button id="quitButton">Quit</button>`, this.div)
+        this.dom.menuRestartButton.onclick = ()=>{this.restart()}
     }
-    replay(){
+    restart() {
         console.log('PREREPLAY')
     }
-    start(){
-        this.time = Date.now()
+    start() {
+        this.start = Date.now()
+        this.time = 0
+        this.interval = setInterval(()=>{this.setTime()}, 1000)
     }
-    remove(){
+    setTime(){
+        this.time = Math.ceil((Date.now() - this.start) / 1000)
+        console.log(this.dom)
+        this.dom.menuTimer.innerHTML = this.time
+    }
+    stop(){clearInterval(this.interval)}
+    remove() {
         this.div.remove()
     }
 }
