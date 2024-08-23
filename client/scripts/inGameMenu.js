@@ -25,6 +25,7 @@ export default class inGameMenu {
     }
     restart() {console.log('REREPLAU')}
     start() {
+        this.nbCases = 0
         this.startTime = Date.now()
         this.time = 0
         this.interval = setInterval(()=>{this.setTime()}, 1000)
@@ -37,7 +38,7 @@ export default class inGameMenu {
         this.nbCases += add
         this.dom.menuCases.innerHTML = this.nbCases
     }
-    quit(){console.log('QUIQUITTE')}
+    quit(){ location.reload()}
     stop(){
         clearInterval(this.interval)
         this.startTime = undefined
