@@ -63,7 +63,6 @@ class user {
     }
     unlockJWT(token, socket) {
         jwt.verify(token, secret, (err, payload) => {
-            // console.log(payload)
             if (err) {} 
             else {
                 con.query(`SELECT * FROM users WHERE username LIKE '${payload.username}';`, function (err, result) {

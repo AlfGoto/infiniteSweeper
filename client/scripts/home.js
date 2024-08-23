@@ -7,15 +7,15 @@ export default class home {
         this.main = document.getElementsByTagName('main')[0]
         this.createNav()
         this.socketResponse()
-        let cookieUser = (document.cookie.match(/^(?:.*;)?\s*user\s*=\s*([^;]+)(?:.*)?$/)||[,null])[1]
-        if(cookieUser){socket.emit('TokenConnect', cookieUser)}
+        let cookieUser = (document.cookie.match(/^(?:.*;)?\s*user\s*=\s*([^;]+)(?:.*)?$/) || [, null])[1]
+        if (cookieUser) { socket.emit('TokenConnect', cookieUser) }
     }
-    socketResponse(){
-        socket.on('logError', data=>{document.getElementById('logError').innerHTML = data})
-        socket.on('logSuccess', data=>{
+    socketResponse() {
+        socket.on('logError', data => { document.getElementById('logError').innerHTML = data })
+        socket.on('logSuccess', data => {
             console.log('logSuccess', data)
             user.name = data.username
-            if(data.token)document.cookie = 'user' + "=" + data.token + ';'
+            if (data.token) document.cookie = "user=" + data.token + '; expires=Thu, 18 Dec 2150 12:00:00 UTC'
             this.connectUser()
         })
     }
@@ -35,14 +35,14 @@ export default class home {
     }
     changePage(decal, target) {
         document.getElementsByClassName('selected')[0].classList.remove('selected')
-        Array.from(document.getElementsByClassName('beforeSelected')).forEach(e=>{e.classList.remove('beforeSelected')})
-        Array.from(document.getElementsByClassName('afterSelected')).forEach(e=>{e.classList.remove('afterSelected')})
+        Array.from(document.getElementsByClassName('beforeSelected')).forEach(e => { e.classList.remove('beforeSelected') })
+        Array.from(document.getElementsByClassName('afterSelected')).forEach(e => { e.classList.remove('afterSelected') })
         let passed = false
         Array.from(this.nav.children).forEach(e => {
             if (e == target) {
                 target.classList.add('selected')
                 passed = true
-            }else {
+            } else {
                 if (!passed) e.classList.add('beforeSelected')
                 else e.classList.add('afterSelected')
             }
@@ -53,49 +53,56 @@ export default class home {
         this.gamePage()
         this.profilePage()
     }
-    profilePage(){
-        if(user.name){
+    profilePage() {
+        if (user.name) {
             user.dom.form.div.style.display = 'none'
             user.dom.div.style.display = 'flex'
-        }else {
+        } else {
             user.dom.div.style.display = 'none'
             user.dom.form.div.style.display = 'flex'
         }
-        user.dom.form.login.onclick = ()=>{this.logreg('login')}
-        user.dom.form.register.onclick = ()=>{this.logreg('register')}
+        user.dom.form.login.onclick = () => { this.logreg('login') }
+        user.dom.form.register.onclick = () => { this.logreg('register') }
+
+        user.dom.unlogButton.onclick = ()=>{
+            console.log('UNLOAD')
+            document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            location.reload()
+        }
 
     }
-    logreg(arg){
+    logreg(arg) {
         let name = user.dom.form.name.value
         let password = user.dom.form.password.value
-        if(name.length < 5 || name.length > 15) return
-        if(password.length < 5 || password.length > 15) return
+        if (name.length < 5 || name.length > 15) return
+        if (password.length < 5 || password.length > 15) return
 
-        socket.emit(arg, {username: name, password: password, remember: user.dom.form.remember.checked})
+        socket.emit(arg, { username: name, password: password, remember: user.dom.form.remember.checked })
     }
-    gamePage(){
+    gamePage() {
         this.gameSoloButton = document.getElementById('gameSoloButton')
-        this.gameSoloButton.onclick = ()=>{this.startGameSolo()}
-        
+        this.gameSoloButton.onclick = () => { this.startGameSolo() }
+
         this.gameMultButton = document.getElementById('gameMultButton')
-        this.gameMultButton.onclick = ()=>{this.startGameMult()}
+        this.gameMultButton.onclick = () => { this.startGameMult() }
     }
-    startGameSolo(){
+    startGameSolo() {
         this.display(false)
         this.game = new basicGames()
     }
-    startGameMult(){
+    startGameMult() {
         alert('Multiplayer is not implemented yet, coming soon !')
     }
-    connectUser(){
+    connectUser() {
         user.dom.form.div.style.display = 'none'
-            user.dom.div.style.display = 'flex'
+        user.dom.div.style.display = 'flex'
+        user.dom.userName.innerHTML = user.name
     }
-    display(arg){
-        if(arg){
+    display(arg) {
+        if (arg) {
             this.main.style.display = 'flex'
             this.nav.style.display = 'flex'
-        }else{
+        } else {
             this.main.style.display = 'none'
             this.nav.style.display = 'none'
         }

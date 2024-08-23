@@ -10,6 +10,8 @@ export default {
             remember: document.getElementById('remember')
         },
         div: document.getElementById('userDiv'),
+        userName: document.getElementById('userName'),
+        unlogButton: document.getElementById('unlogButton')
     },
 
 }
