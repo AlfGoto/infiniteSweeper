@@ -37,10 +37,14 @@ io.on('connection', (socket) => {
         socket.grid[row][col].checked = true
         socket.nbCases++
         if (socket.grid[row][col].data !== 'bomb') io.emit('clickResponse', { ...data, data: socket.grid[row][col].data })
-        else io.emit('clickResponse', { ...data, data: socket.grid[row][col].data, nbCases: socket.nbCases, duration: Date.now() - socket.start })
+        else {
+            if (socket.user.username) sql.game.add(socket.user.username, Date.now() - socket.start, socket.nbCases, true)
+            io.emit('clickResponse', { ...data, data: socket.grid[row][col].data, nbCases: socket.nbCases, duration: Date.now() - socket.start })
+        }
     });
-    socket.on('login', data => { sql.user.login(noInjection(data.username), noInjection(data.password), socket) })
-    socket.on('register', data => { sql.user.register(noInjection(data.username), noInjection(data.password), socket) })
+    socket.on('login', data => { sql.user.login(noInjection(data.username), noInjection(data.password), socket, data.remember) })
+    socket.on('register', data => { sql.user.register(noInjection(data.username), noInjection(data.password), socket, data.remember) })
+    socket.on('TokenConnect', data => { sql.user.unlockJWT(data, socket) })
 
     socket.on('restart', (data) => { start(socket) })
     socket.on('disconnect', () => { console.log('Un utilisateur est déconnecté'); });

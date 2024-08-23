@@ -105,6 +105,10 @@ main {
                 #logError {
                     color: red;
                 }
+                #remember{
+                    width: 30px;
+                    height: 30px;
+                }
 
                 div {
                     display: flex;

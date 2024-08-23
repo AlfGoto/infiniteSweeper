@@ -7,6 +7,7 @@ export default {
             password:document.getElementById('logPassword'),
             login:document.getElementById('logButton'),
             register: document.getElementById('regButton'),
+            remember: document.getElementById('remember')
         },
         div: document.getElementById('userDiv'),
     },

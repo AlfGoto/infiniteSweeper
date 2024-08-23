@@ -7,11 +7,15 @@ export default class home {
         this.main = document.getElementsByTagName('main')[0]
         this.createNav()
         this.socketResponse()
+        let cookieUser = (document.cookie.match(/^(?:.*;)?\s*user\s*=\s*([^;]+)(?:.*)?$/)||[,null])[1]
+        if(cookieUser){socket.emit('TokenConnect', cookieUser)}
     }
     socketResponse(){
         socket.on('logError', data=>{document.getElementById('logError').innerHTML = data})
         socket.on('logSuccess', data=>{
-            user.name = data
+            console.log('logSuccess', data)
+            user.name = data.username
+            if(data.token)document.cookie = 'user' + "=" + data.token + ';'
             this.connectUser()
         })
     }
@@ -67,7 +71,7 @@ export default class home {
         if(name.length < 5 || name.length > 15) return
         if(password.length < 5 || password.length > 15) return
 
-        socket.emit(arg, {username: name, password: password})
+        socket.emit(arg, {username: name, password: password, remember: user.dom.form.remember.checked})
     }
     gamePage(){
         this.gameSoloButton = document.getElementById('gameSoloButton')
