@@ -12,25 +12,36 @@ export default class inGameMenu {
                 <input id="inGameMenuCheckbox" type="checkbox" />
                 <label for="inGameMenuCheckbox"></label>
                 <img id="menuRestartButton" src="img/logoRestart.png" alt="restart button">
-                <div><p>Time</p><p id="menuTimer">0</p></div>
-                <div><p>Cases</p><p id="menuCases">0</p></div>
+                <div class="statsIndic"><p>Time</p><p id="menuTimer">0</p></div>
+                <div class="statsIndic"><p>Cases</p><p id="menuCases">0</p></div>
                 <button id="quitButton">Quit</button>`, this.div)
-        this.dom.menuRestartButton.onclick = ()=>{this.restart()}
+        this.dom.menuRestartButton.onclick = ()=>{this.restartClick()}
+        this.dom.quitButton.onclick = ()=>{this.quit()}
     }
-    restart() {
-        console.log('PREREPLAY')
+    restartClick(){
+        // this.start()
+        this.restart()
+        this.nbCases = 0
     }
+    restart() {console.log('REREPLAU')}
     start() {
-        this.start = Date.now()
+        this.startTime = Date.now()
         this.time = 0
         this.interval = setInterval(()=>{this.setTime()}, 1000)
     }
     setTime(){
-        this.time = Math.ceil((Date.now() - this.start) / 1000)
-        console.log(this.dom)
+        this.time = Math.ceil((Date.now() - this.startTime) / 1000)
         this.dom.menuTimer.innerHTML = this.time
     }
-    stop(){clearInterval(this.interval)}
+    addCase(add = 1){
+        this.nbCases += add
+        this.dom.menuCases.innerHTML = this.nbCases
+    }
+    quit(){console.log('QUIQUITTE')}
+    stop(){
+        clearInterval(this.interval)
+        this.startTime = undefined
+    }
     remove() {
         this.div.remove()
     }

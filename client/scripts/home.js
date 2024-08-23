@@ -50,7 +50,6 @@ export default class home {
         this.profilePage()
     }
     profilePage(){
-        console.log(user.dom.form.div)
         if(user.name){
             user.dom.form.div.style.display = 'none'
             user.dom.div.style.display = 'flex'

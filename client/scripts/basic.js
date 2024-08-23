@@ -8,7 +8,7 @@ export default class basicGames {
         this.ctx = this.canvas.getContext('2d');
         this.cellSize = 35;
         this.menu = new inGameMenu()
-        this.menu.restart = ()=>{this.restart()()}
+        this.menu.restart = ()=>{this.restart()}
 
         this.imgs()
         this.events()
@@ -46,6 +46,8 @@ export default class basicGames {
     }
     socketResponse() {
         socket.on('clickResponse', (data) => {
+            if(!this.menu.startTime)this.menu.start()
+                this.menu.addCase()
             // console.log(data)
             let row = data.row
             let col = data.col
@@ -91,11 +93,10 @@ export default class basicGames {
         this.cellFlags = new Map();
         this.cellBombs = new Map();
 
-        this.menu.start()
+        // this.menu.start()
         this.drawGrid()
     }
     restart() {
-        console.log('RESTART')
         socket.emit('restart')
         this.start()
     }
